@@ -17,7 +17,11 @@ add_library( # Sets the name of the library.
              SHARED
 
              # Provides a relative path to your source file(s).
-             src/main/cpp/native-lib.cpp )
+             src/main/cpp/native-lib.cpp
+             src/main/cpp/rtmp_external.cpp
+             src/main/cpp/srs_librtmp.cpp
+             src/main/cpp/srs_metadata.cpp
+             )
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
