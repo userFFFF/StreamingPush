@@ -2,14 +2,12 @@ package com.user.streamingpush;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
-
-    // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("native-lib");
-    }
+    public static final String TAG = "StreamingPush";
+    RtmpLive rtmplive = new RtmpLive();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,12 +16,14 @@ public class MainActivity extends AppCompatActivity {
 
         // Example of a call to a native method
         TextView tv = (TextView) findViewById(R.id.sample_text);
-        tv.setText(stringFromJNI());
+        tv.setText(rtmplive.stringFromJNI());
+        rtmplive.Init("http://ali/stream/stream1", new RtmpLive.onStreamingCallback() {
+            @Override
+            public void onCallbak(int code) {
+                Log.d(TAG, "code = " + code);
+            }
+        });
     }
 
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-    public native String stringFromJNI();
+
 }

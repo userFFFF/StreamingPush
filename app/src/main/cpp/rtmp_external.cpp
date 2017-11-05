@@ -8,7 +8,7 @@ rtmp_t rtmp_create(const char *pUrl)
 
 int rtmp_connect(rtmp_t rtmp)
 {
-    int ret = rtmp_success;
+    int ret = rtmp_connected;
     if((ret = srs_rtmp_handshake((srs_rtmp_t *)rtmp)) != rtmp_success)
     {
         return rtmp_handshake_error;
@@ -21,7 +21,7 @@ int rtmp_connect(rtmp_t rtmp)
     {
         return rtmp_stream_error;
     }
-    return rtmp_success;
+    return rtmp_connected;
 }
 
 int rtmp_push_scriptdata(rtmp_t rtmp, bool bHasVideo, 

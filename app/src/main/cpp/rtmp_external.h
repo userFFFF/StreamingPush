@@ -10,10 +10,16 @@ extern "C"{
 
 typedef void* rtmp_t;
 
-#define rtmp_success 0
-#define rtmp_handshake_error -1
-#define rtmp_connect_error -2
-#define rtmp_stream_error -3
+#define rtmp_stopped             2
+#define rtmp_connected           1
+#define rtmp_success             0
+#define rtmp_create_error        -1
+#define rtmp_handshake_error     -2
+#define rtmp_connect_error       -3
+#define rtmp_stream_error        -4
+#define rtmp_stream_unsupport    -5
+#define rtmp_handle_error        -6
+#define rtmp_stream_size_error   -7
 
 /**
 * rtmp_create:
