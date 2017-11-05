@@ -159,4 +159,3 @@ Java_com_user_streamingpush_RtmpLive_Stop(
     RtmpLive_Callback(rtmp_stopped);
 }
 }
-
