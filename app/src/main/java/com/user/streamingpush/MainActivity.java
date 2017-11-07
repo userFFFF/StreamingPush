@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
         // Example of a call to a native method
         TextView tv = (TextView) findViewById(R.id.sample_text);
         tv.setText(rtmplive.stringFromJNI());
-        rtmplive.Init("http://ali/stream/stream1", new RtmpLive.onStreamingCallback() {
+        rtmplive.Init("rtmp://video-center.alivecdn.com/live/livestream1?vhost=push.yangxudong.com", new RtmpLive.onStreamingCallback() {
             @Override
             public void onCallbak(int code) {
                 Log.d(TAG, "code = " + code);

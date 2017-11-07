@@ -5,19 +5,19 @@ package com.user.streamingpush;
  */
 
 public class RtmpLive {
-
+    public static final String TAG = "StreamingPush-RtmpLive";
 
 
     public interface onStreamingCallback {
         public void onCallbak(int code);
     }
-    // Used to load the 'native-lib' library on application startup.
+    // Used to load the 'rtmplive-lib' library on application startup.
     static {
         System.loadLibrary("rtmplive-lib");
     }
 
     /**
-     * A native method that is implemented by the 'native-lib' native library,
+     * A native method that is implemented by the 'rtmplive-lib' native library,
      * which is packaged with this application.
      */
     public native String stringFromJNI();
