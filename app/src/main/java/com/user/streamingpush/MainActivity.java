@@ -9,7 +9,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String TAG = "SP-MainActivity";
+    public static final String TAG = "MainActivity";
     private Button startbtn;
     RtmpLive rtmplive = new RtmpLive();
 
@@ -19,8 +19,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Example of a call to a native method
-        TextView tv = (TextView) findViewById(R.id.sample_text);
-        startbtn = (Button) findViewById(R.id.btn_start);
+        TextView tv = findViewById(R.id.sample_text);
+        startbtn = findViewById(R.id.btn_start);
         startbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
