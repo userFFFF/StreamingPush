@@ -4,7 +4,6 @@ package com.user.streamingpush;
  * Created by user0 on 2017/11/8.
  */
 
-
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
@@ -25,9 +24,12 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
 
     private Camera mCamera;
     private Camera.Parameters mCameraParamters;
+    private Camera.Size mSize = null;
     private TextureView mTextureView;
     private Button mSwitchCamButton;
+    private VideoCodec mVideoCode = new VideoCodec();
     private int mCameraNum;
+    private int mCameraFacing = Camera.CameraInfo.CAMERA_FACING_BACK;
     private CameraPreviewCallback mCameraPreviewCallback = new CameraPreviewCallback();
     private static final int FRAME_WIDTH = 640;
     private static final int FRAME_HEIGHT = 480;
@@ -107,6 +109,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
             throw new RuntimeException("Unable to open camera");
         }
         Log.d(TAG, "Camera opened...");
+        mVideoCode.VideoEncoder(FRAME_WIDTH, FRAME_HEIGHT);
     }
 
     public void doStartPreview(SurfaceTexture surface, float previewRate) {
@@ -122,6 +125,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
 
     public void doStopCamera() {
         Log.d(TAG, "doStopCamera");
+        mVideoCode.close();
         if (mCamera != null) {
             mCamera.setPreviewCallback(null);
             mCamera.stopPreview();
@@ -134,11 +138,24 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         Log.d(TAG, "initCamera");
         if (mCamera != null) {
             mCameraParamters = mCamera.getParameters();
-            mCameraParamters.setPreviewFormat(ImageFormat.NV21);
+            mCameraParamters.setPreviewFormat(ImageFormat.YV12);
             mCameraParamters.setFlashMode("off");
             mCameraParamters.setWhiteBalance(Camera.Parameters.WHITE_BALANCE_AUTO);
             mCameraParamters.setSceneMode(Camera.Parameters.SCENE_MODE_AUTO);
-            mCameraParamters.setPreviewSize(FRAME_WIDTH, FRAME_HEIGHT);
+
+            List<Camera.Size> sizes = mCameraParamters.getSupportedPreviewSizes();
+            for (int i = 0; i < sizes.size(); i++) {
+                Camera.Size s = sizes.get(i);
+                Log.i(TAG, "Size: " + s.height + "x" + s.width);
+                if (mSize == null) {
+                    if (s.height == FRAME_HEIGHT && s.width == FRAME_WIDTH) {
+                        mSize = s;
+                        break;
+                    }
+                }
+            }
+            mCameraParamters.setPreviewSize(mSize.width, mSize.height);
+            Log.d(TAG, "mSize: " + mSize.width + "x" + mSize.height);
             mCamera.setDisplayOrientation(90);
             mCamera.addCallbackBuffer(mFrameCallbackBuffer);
             mCamera.setPreviewCallbackWithBuffer(mCameraPreviewCallback);
@@ -146,6 +163,9 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
             if (focusModes.contains("continuous-video")) {
                 mCameraParamters
                         .setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+            } else {
+                mCameraParamters
+                        .setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
             }
             mCamera.setParameters(mCameraParamters);
             mCamera.startPreview();
@@ -166,9 +186,9 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {
             Log.i(TAG, "onPreviewFrame");
-            long startTime = System.currentTimeMillis();
-            long endTime = System.currentTimeMillis();
-            Log.i(TAG, Integer.toString((int) (endTime - startTime)) + "ms");
+            mVideoCode.ProcessRawData(data);
+            //long startTime = System.currentTimeMillis();
+            //long endTime = System.currentTimeMillis();
             camera.addCallbackBuffer(data);
         }
     }
