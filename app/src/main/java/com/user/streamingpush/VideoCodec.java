@@ -72,8 +72,11 @@ public class VideoCodec {
         setEncoderColorFormat(mColorFormat);
 
         Log.d(TAG, "Video Encoder Parameter: [width = " + width + ", height = " + height + ", degree = " + degree
-                + ", framerate = " + framerate + ", bitrate = " + bitrate + ", colorFormat = " + mColorFormat
+                + ", framerate = " + framerate + ", bitrate = " + bitrate + "]");
+
+        Log.d(TAG, "Video Encoder Parameter: [colorFormat = " + mColorFormat
                 + ", mPlanar = " + mPlanar + ", codec = " + codecInfo.getName() + ", mime_type = " + mime + "]");
+
 
         try {
             mMediaCodec = MediaCodec.createByCodecName(codecInfo.getName());
@@ -103,7 +106,7 @@ public class VideoCodec {
         Log.d(TAG, "input.length = " + input.length);
         ByteBuffer[] inputBuffers = mMediaCodec.getInputBuffers();
         ByteBuffer[] outputBuffers = mMediaCodec.getOutputBuffers();
-        byte[] covertBuffer;// = new byte[input.length]; // DO NOT NEED NEW!!!
+        byte[] covertBuffer; //= new byte[input.length]; // DO NOT NEED NEW!!!
 
         if (mDegree == 0) {
             covertBuffer = Utils.rotateNV21Degree90(input, mWidth, mHeight);

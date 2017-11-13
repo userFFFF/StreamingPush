@@ -4,6 +4,7 @@ package com.user.streamingpush;
  * Created by user0 on 2017/11/8.
  */
 
+import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.Bundle;
@@ -15,26 +16,33 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Toast;
 
-import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Iterator;
 import java.util.List;
 
 public class CameraActivity extends AppCompatActivity implements TextureView.SurfaceTextureListener {
     private String TAG = "CameraActivity";
 
+    // Camera
     private Camera mCamera;
-    private int mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
-    ;
-    private Camera.Parameters mCameraParamters;
-    private Camera.Size mSize = null;
-    private TextureView mTextureView;
-    private Button mSwitchCamButton;
-    private VideoCodec mVideoCode = new VideoCodec();
     private int mCameraNum;
-    private CameraPreviewCallback mCameraPreviewCallback = new CameraPreviewCallback();
-    private static final int FRAME_WIDTH = 640;
-    private static final int FRAME_HEIGHT = 480;
-    private byte[] mFrameCallbackBuffer = new byte[FRAME_WIDTH * FRAME_HEIGHT * 3 / 2];
+    //private Camera.Size mSize;
+    private int mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+
+    //View
+    private Button mSwitchCamButton;
+    private TextureView mTextureView;
+
+    //Video Codec
+    private VideoCodec mVideoCode = new VideoCodec();
+
+    //Parameter
+    private int mWidth = 640, mHeight = 480;
+    private int framerate = 15;
+    private int bitrate = 2 * mWidth * mHeight * framerate / 20;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,10 +61,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
                 switchCamera();
             }
         });
-
-        doOpenCamera();
     }
-
 
     @Override
     protected void onResume() {
@@ -65,7 +70,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
 
     protected void onDestroy() {
         super.onDestroy();
-        doStopCamera();
+        destroyCamera();
         mVideoCode.onDestroy();
 
     }
@@ -73,7 +78,9 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         Log.d(TAG, "onSurfaceTextureAvailable: size:" + width + "x" + height);
-        doStartPreview(surface, 20);
+        createCamera(surface);
+        startPreview();
+        mVideoCode.initVideoEncoder(mWidth, mHeight, getDegree(), framerate, bitrate);
     }
 
     @Override
@@ -84,6 +91,8 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
         Log.d(TAG, "onSurfaceTextureDestroyed");
+        stopPreview();
+        destroyCamera();
         return false;
     }
 
@@ -92,97 +101,120 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
 
     }
 
-    public void doOpenCamera() {
-        Log.d(TAG, "Camera open...");
-        mCameraNum = Camera.getNumberOfCameras();
-        Camera.CameraInfo info = new Camera.CameraInfo();
-        for (int i = 0; i < mCameraNum; i++) {
-            Camera.getCameraInfo(i, info);
-            //
-            if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
-                mCamera = Camera.open(i);
-                break;
-            }
-        }
-        if (mCamera == null) {
-            Log.d(TAG, "No front-facing camera found; opening default");
-            mCamera = Camera.open();    // opens first back-facing camera
-        }
-        if (mCamera == null) {
-            throw new RuntimeException("Unable to open camera");
-        }
-        Log.d(TAG, "Camera opened...");
-        mVideoCode.initVideoEncoder(FRAME_WIDTH, FRAME_HEIGHT, getDegree(), 15, 250000);
-    }
-
-    public void doStartPreview(SurfaceTexture surface, float previewRate) {
-        Log.d(TAG, "doStartPreview");
-
+    private boolean createCamera(SurfaceTexture surface) {
         try {
+            mCameraNum = Camera.getNumberOfCameras();
+            Camera.CameraInfo info = new Camera.CameraInfo();
+            Log.d(TAG, "mCameraNum = " + mCameraNum);
+            for (int i = 0; i < mCameraNum; i++) {
+                Camera.getCameraInfo(i, info);
+                //
+                if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
+                    mCamera = Camera.open(i);
+                    break;
+                }
+            }
+            if (mCamera == null) {
+                Log.d(TAG, "No front-facing camera found; opening default");
+                mCamera = Camera.open();    // opens first back-facing camera
+            }
+            if (mCamera == null) {
+                throw new RuntimeException("Unable to open camera");
+            }
+            Camera.Parameters mCameraParamters = mCamera.getParameters();
+            int[] max = determineMaximumSupportedFramerate(mCameraParamters);
+            Camera.CameraInfo camInfo = new Camera.CameraInfo();
+            Camera.getCameraInfo(mCameraId, camInfo);
+            int rotate = (360 + camInfo.orientation - getDegree()) % 360;
+            mCameraParamters.setRotation(rotate);
+            mCameraParamters.setPreviewFormat(mCameraParamters.getPreviewFormat());
+//            List<Camera.Size> sizes = mCameraParamters.getSupportedPreviewSizes();
+//            for (int i = 0; i < sizes.size(); i++) {
+//                Camera.Size s = sizes.get(i);
+//                Log.i(TAG, "Size: " + s.height + "x" + s.width);
+//                if (mSize == null) {
+//                    if (s.height == width && s.width == height) {
+//                        mSize = s;
+//                        break;
+//                    }
+//                }
+//            }
+//            if (sizes == null) {
+//                mSize.width = width;
+//                mSize.height = height;
+//            }
+            mCameraParamters.setPreviewSize(mWidth, mHeight);
+            mCameraParamters.setPreviewFpsRange(max[0], max[1]);
+            mCamera.setParameters(mCameraParamters);
+            mCamera.autoFocus(null);
+            int displayRotation = (camInfo.orientation - getDegree() + 360) % 360;
+            mCamera.setDisplayOrientation(displayRotation);
             mCamera.setPreviewTexture(surface);
-        } catch (IOException e) {
+            return true;
+        } catch (Exception e) {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            String stack = sw.toString();
+            Toast.makeText(this, stack, Toast.LENGTH_LONG).show();
+            destroyCamera();
             e.printStackTrace();
+            return false;
         }
-        initCamera();
     }
 
-    public void doStopCamera() {
-        Log.d(TAG, "doStopCamera");
+    public void startPreview() {
         if (mCamera != null) {
-            mCamera.setPreviewCallback(null);
+            mCamera.startPreview();
+            int previewFormat = mCamera.getParameters().getPreviewFormat();
+            Camera.Size previewSize = mCamera.getParameters().getPreviewSize();
+            int size = previewSize.width * previewSize.height
+                    * ImageFormat.getBitsPerPixel(previewFormat) / 8;
+            mCamera.addCallbackBuffer(new byte[size]);
+            mCamera.setPreviewCallbackWithBuffer(previewCallback);
+        }
+    }
+
+    public synchronized void stopPreview() {
+        if (mCamera != null) {
             mCamera.stopPreview();
-            mCamera.release();
+            mCamera.setPreviewCallbackWithBuffer(null);
+        }
+    }
+
+    protected synchronized void destroyCamera() {
+        if (mCamera != null) {
+            mCamera.stopPreview();
+            try {
+                mCamera.release();
+            } catch (Exception e) {
+
+            }
             mCamera = null;
         }
     }
 
-    private void initCamera() {
-        Log.d(TAG, "initCamera");
-        if (mCamera != null) {
-            mCameraParamters = mCamera.getParameters();
-            mCameraParamters.setPreviewFormat(mCameraParamters.getPreviewFormat());
-            mCameraParamters.setFlashMode("off");
-            mCameraParamters.setWhiteBalance(Camera.Parameters.WHITE_BALANCE_AUTO);
-            mCameraParamters.setSceneMode(Camera.Parameters.SCENE_MODE_AUTO);
-
-            List<Camera.Size> sizes = mCameraParamters.getSupportedPreviewSizes();
-            for (int i = 0; i < sizes.size(); i++) {
-                Camera.Size s = sizes.get(i);
-                Log.i(TAG, "Size: " + s.height + "x" + s.width);
-                if (mSize == null) {
-                    if (s.height == FRAME_HEIGHT && s.width == FRAME_WIDTH) {
-                        mSize = s;
-                        break;
-                    }
-                }
+    public static int[] determineMaximumSupportedFramerate(Camera.Parameters parameters) {
+        int[] maxFps = new int[]{0, 0};
+        List<int[]> supportedFpsRanges = parameters.getSupportedPreviewFpsRange();
+        for (Iterator<int[]> it = supportedFpsRanges.iterator(); it.hasNext(); ) {
+            int[] interval = it.next();
+            if (interval[1] > maxFps[1] || (interval[0] > maxFps[0] && interval[1] == maxFps[1])) {
+                maxFps = interval;
             }
-            if (sizes == null) {
-                mSize.width = 640;
-                mSize.height = 480;
-            }
-            mCameraParamters.setPreviewSize(mSize.width, mSize.height);
-            Log.d(TAG, "mSize: " + mSize.width + "x" + mSize.height);
-
-            Camera.CameraInfo camInfo = new Camera.CameraInfo();
-            Camera.getCameraInfo(mCameraId, camInfo);
-            int rotation = (360 + camInfo.orientation - getDegree()) % 360;
-            mCamera.setDisplayOrientation(rotation);
-            mCamera.addCallbackBuffer(mFrameCallbackBuffer);
-            mCamera.setPreviewCallbackWithBuffer(mCameraPreviewCallback);
-            List<String> focusModes = mCameraParamters.getSupportedFocusModes();
-            if (focusModes.contains("continuous-video")) {
-                mCameraParamters
-                        .setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
-            } else {
-                mCameraParamters
-                        .setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-            }
-            mCamera.setParameters(mCameraParamters);
-            mCamera.startPreview();
-        } else {
-            Log.e(TAG, "mCamera is NULL");
         }
+        return maxFps;
     }
+
+    Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
+        @Override
+        public void onPreviewFrame(byte[] data, Camera camera) {
+            Log.i(TAG, "onPreviewFrame");
+            byte dst[];
+            dst = mVideoCode.onPreviewFrameEncoding(data);
+            camera.addCallbackBuffer(dst);
+        }
+    };
 
     public void switchCamera() {
         if (mCameraNum > 1) {
@@ -210,17 +242,5 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
                 break;// Landscape right
         }
         return degrees;
-    }
-
-    class CameraPreviewCallback implements Camera.PreviewCallback {
-        @Override
-        public void onPreviewFrame(byte[] data, Camera camera) {
-            Log.i(TAG, "onPreviewFrame");
-            byte dst[];
-            dst = mVideoCode.onPreviewFrameEncoding(data);
-            //long startTime = System.currentTimeMillis();
-            //long endTime = System.currentTimeMillis();
-            camera.addCallbackBuffer(dst);
-        }
     }
 }
