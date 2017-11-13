@@ -210,8 +210,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {
             Log.i(TAG, "onPreviewFrame");
-            byte dst[];
-            dst = mVideoCode.onPreviewFrameEncoding(data);
+            byte dst[] = mVideoCode.onPreviewFrameEncoding(data);
             camera.addCallbackBuffer(dst);
         }
     };
