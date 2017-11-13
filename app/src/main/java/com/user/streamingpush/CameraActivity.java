@@ -4,12 +4,12 @@ package com.user.streamingpush;
  * Created by user0 on 2017/11/8.
  */
 
-import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.Window;
@@ -23,13 +23,14 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     private String TAG = "CameraActivity";
 
     private Camera mCamera;
+    private int mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+    ;
     private Camera.Parameters mCameraParamters;
     private Camera.Size mSize = null;
     private TextureView mTextureView;
     private Button mSwitchCamButton;
     private VideoCodec mVideoCode = new VideoCodec();
     private int mCameraNum;
-    private int mCameraFacing = Camera.CameraInfo.CAMERA_FACING_BACK;
     private CameraPreviewCallback mCameraPreviewCallback = new CameraPreviewCallback();
     private static final int FRAME_WIDTH = 640;
     private static final int FRAME_HEIGHT = 480;
@@ -63,8 +64,10 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     }
 
     protected void onDestroy() {
-        doStopCamera();
         super.onDestroy();
+        doStopCamera();
+        mVideoCode.onDestroy();
+
     }
 
     @Override
@@ -109,7 +112,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
             throw new RuntimeException("Unable to open camera");
         }
         Log.d(TAG, "Camera opened...");
-        mVideoCode.VideoEncoder(FRAME_WIDTH, FRAME_HEIGHT);
+        mVideoCode.initVideoEncoder(FRAME_WIDTH, FRAME_HEIGHT, getDegree(), 15, 250000);
     }
 
     public void doStartPreview(SurfaceTexture surface, float previewRate) {
@@ -125,7 +128,6 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
 
     public void doStopCamera() {
         Log.d(TAG, "doStopCamera");
-        mVideoCode.close();
         if (mCamera != null) {
             mCamera.setPreviewCallback(null);
             mCamera.stopPreview();
@@ -138,7 +140,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         Log.d(TAG, "initCamera");
         if (mCamera != null) {
             mCameraParamters = mCamera.getParameters();
-            mCameraParamters.setPreviewFormat(ImageFormat.YV12);
+            mCameraParamters.setPreviewFormat(mCameraParamters.getPreviewFormat());
             mCameraParamters.setFlashMode("off");
             mCameraParamters.setWhiteBalance(Camera.Parameters.WHITE_BALANCE_AUTO);
             mCameraParamters.setSceneMode(Camera.Parameters.SCENE_MODE_AUTO);
@@ -154,9 +156,17 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
                     }
                 }
             }
+            if (sizes == null) {
+                mSize.width = 640;
+                mSize.height = 480;
+            }
             mCameraParamters.setPreviewSize(mSize.width, mSize.height);
             Log.d(TAG, "mSize: " + mSize.width + "x" + mSize.height);
-            mCamera.setDisplayOrientation(90);
+
+            Camera.CameraInfo camInfo = new Camera.CameraInfo();
+            Camera.getCameraInfo(mCameraId, camInfo);
+            int rotation = (360 + camInfo.orientation - getDegree()) % 360;
+            mCamera.setDisplayOrientation(rotation);
             mCamera.addCallbackBuffer(mFrameCallbackBuffer);
             mCamera.setPreviewCallbackWithBuffer(mCameraPreviewCallback);
             List<String> focusModes = mCameraParamters.getSupportedFocusModes();
@@ -182,14 +192,35 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         }
     }
 
+    protected int getDegree() {
+        int rotation = getWindowManager().getDefaultDisplay().getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                degrees = 0;
+                break; // Natural orientation
+            case Surface.ROTATION_90:
+                degrees = 90;
+                break; // Landscape left
+            case Surface.ROTATION_180:
+                degrees = 180;
+                break;// Upside down
+            case Surface.ROTATION_270:
+                degrees = 270;
+                break;// Landscape right
+        }
+        return degrees;
+    }
+
     class CameraPreviewCallback implements Camera.PreviewCallback {
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {
             Log.i(TAG, "onPreviewFrame");
-            mVideoCode.ProcessRawData(data);
+            byte dst[];
+            dst = mVideoCode.onPreviewFrameEncoding(data);
             //long startTime = System.currentTimeMillis();
             //long endTime = System.currentTimeMillis();
-            camera.addCallbackBuffer(data);
+            camera.addCallbackBuffer(dst);
         }
     }
 }
