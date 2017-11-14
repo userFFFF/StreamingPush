@@ -21,12 +21,10 @@ import java.util.Date;
 
 public class VideoCodec {
     private static final String TAG = "VideoCodec";
-    private static final boolean mDumpOutput = true;
     // parameters for the encoder
     private static final int GOP = 1; // second
     private static final int timeoutUs = 50000; // 50 ms
     private static final String mime = "video/avc"; // H.264 Advanced Video
-    private static final String mDumpBasePath = Environment.getExternalStorageDirectory() + "/Movies/h264_";
 
     private int mWidth;
     private int mHeight;
@@ -37,8 +35,12 @@ public class VideoCodec {
     private int mYPadding = 0; // some video codec may be used
     private boolean mPlanar = false;
     private boolean mPanesReversed = false; // some video codec may be used
-    private String mDumpOutputPath;
     private MediaCodec mMediaCodec = null;
+
+    // Dump Output
+    private String mDumpOutputPath;
+    private static final boolean mDumpOutput = true;
+    private static final String mDumpBasePath = Environment.getExternalStorageDirectory() + "/Movies/h264_";
 
     public void setPlanar(boolean planar) {
         mPlanar = planar;

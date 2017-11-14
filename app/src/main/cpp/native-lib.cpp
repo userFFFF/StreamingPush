@@ -98,6 +98,7 @@ Java_com_user_streamingpush_RtmpLive_Init(
     if (mCallBack_Obj != NULL) {
         env->DeleteGlobalRef(mCallBack_Obj);
     }
+
     mCallBack_Obj = callback ? env->NewGlobalRef(callback) : NULL;
     const char *pUrl = env->GetStringUTFChars(url, false);
     LOGD("url = [%s]", pUrl);

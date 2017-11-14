@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         tv.setText(rtmplive.stringFromJNI());
-        rtmplive.Init("rtmp://video-center.alivecdn.com/live/livestream1?vhost=push.yangxudong.com", new RtmpLive.onStreamingCallback() {
+        rtmplive.Init("rtmp://video-center.alivecdn.com/live/livestream?vhost=push.yangxudong.com", new RtmpLive.onStreamingCallback() {
             @Override
             public void onCallbak(int code) {
                 Log.d(TAG, "code = " + code);

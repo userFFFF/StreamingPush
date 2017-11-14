@@ -129,14 +129,16 @@ public class Utils {
         return dst;
     }
 
-    public static void convert(byte[] data, ByteBuffer buffer, int width, int height, int mYPadding, boolean mPlanar, boolean mPanesReversed) {
+    public static void convert(byte[] data, ByteBuffer buffer, int width, int height,
+                               int mYPadding, boolean mPlanar, boolean mPanesReversed) {
         byte[] result = convert(data, width, height, mYPadding, mPlanar, mPanesReversed);
         int min = buffer.capacity() < data.length ? buffer.capacity() : data.length;
         Log.d("Utils", "min = " + min);
         buffer.put(result, 0, min);
     }
 
-    public static byte[] convert(byte[] data, int width, int height, int mYPadding, boolean mPlanar, boolean mPanesReversed) {
+    public static byte[] convert(byte[] data, int width, int height,
+                                 int mYPadding, boolean mPlanar, boolean mPanesReversed) {
         // A buffer large enough for every case
         byte[] mBuffer = new byte[3 * height * width / 2];
         int mSize = width * height;

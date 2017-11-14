@@ -93,6 +93,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         Log.d(TAG, "onSurfaceTextureDestroyed");
         stopPreview();
         destroyCamera();
+        mVideoCode.onDestroy();
         return false;
     }
 
