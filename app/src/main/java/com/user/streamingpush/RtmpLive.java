@@ -23,8 +23,6 @@ public class RtmpLive {
      * A native method that is implemented by the 'rtmplive-lib' native library,
      * which is packaged with this application.
      */
-    public native String stringFromJNI();
-
     public native long Init(String url, onStreamingCallback callback);
 
     public native int PushStreaming(long pushObj, byte[] data, int size, long timestamp, int type);
@@ -36,7 +34,7 @@ public class RtmpLive {
     }
 
     public int StreamPusher(byte[] data, int size, long timestamp, int type) {
-        if (mPusherObj > 0) {
+        if (mPusherObj != 0) {
             return PushStreaming(mPusherObj, data, size, timestamp, type);
         } else {
             Log.e(TAG, "Push Handler Error!");

@@ -81,15 +81,6 @@ void RtmpLive_Callback(jint value) {
     env->DeleteLocalRef(objClass);
 }
 
-JNIEXPORT jstring JNICALL
-Java_com_user_streamingpush_RtmpLive_stringFromJNI(
-        JNIEnv *env,
-        jobject /* this */) {
-    std::string hello = "Hello from C++++====";
-    LOGD("StringFromJNI");
-    return env->NewStringUTF(hello.c_str());
-}
-
 JNIEXPORT jlong JNICALL
 Java_com_user_streamingpush_RtmpLive_Init(
         JNIEnv *env, jobject /* this */, jstring url, jobject callback) {

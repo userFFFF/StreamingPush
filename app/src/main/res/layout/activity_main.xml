@@ -74,7 +74,8 @@
                 android:id="@+id/Radio_1080P"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="1080P" />
+                android:text="1080P"
+                android:visibility="invisible" />
         </RadioGroup>
 
         <RadioGroup
