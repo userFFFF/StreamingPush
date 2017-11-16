@@ -4,6 +4,8 @@ package com.user.streamingpush;
  * Created by user0 on 2017/11/8.
  */
 
+import android.app.Activity;
+import android.content.SharedPreferences;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
@@ -44,12 +46,26 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     private int framerate = 15;
     private int bitrate = 2 * mWidth * mHeight * framerate / 20;
 
+    //SharedPreferences
+    SharedPreferences mSharedPre;
+    SharedPreferences.Editor mEditor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_camera);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+
+        mSharedPre = getSharedPreferences(Config.NAME, Activity.MODE_PRIVATE);
+        mEditor = mSharedPre.edit();
+        String mURL = mSharedPre.getString(Config.SERVER_URL, "");
+        onFPSConfig();
+        onResolutionConfig();
+
+
+        Log.d(TAG, "mURL: " + mURL + " framerate: " + framerate + " resolution: " + mWidth + "x" + mHeight);
 
         mTextureView = findViewById(R.id.camera_preview);
         mTextureView.setSurfaceTextureListener(this);
@@ -72,6 +88,41 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         super.onDestroy();
         destroyCamera();
         mVideoCode.onDestroy();
+
+    }
+
+    private void onFPSConfig() {
+        framerate = mSharedPre.getInt(Config.FPS, 15);
+    }
+
+    private void onResolutionConfig() {
+        int mResolution = mSharedPre.getInt(Config.RESOLUTION, 480);
+        switch (mResolution) {
+            case 240:
+                mWidth = 320;
+                mHeight = 240;
+                break;
+            case 320:
+                mWidth = 320;
+                mHeight = 480;
+                break;
+            case 480:
+                mWidth = 640;
+                mHeight = 480;
+                break;
+            case 640:
+                mWidth = 720;
+                mHeight = 640;
+                break;
+            case 720:
+                mWidth = 1280;
+                mHeight = 720;
+                break;
+            case 1080:
+                mWidth = 1920;
+                mHeight = 1080;
+                break;
+        }
 
     }
 
