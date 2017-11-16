@@ -1,24 +1,133 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.user.streamingpush.MainActivity">
+    android:orientation="vertical">
+
 
     <TextView
-        android:id="@+id/sample_text"
+        android:id="@+id/txt_Addr"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:text="@string/txt_Addr"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+    <EditText
+        android:id="@+id/EditTxt_URL"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="URL:"
+        android:inputType="textMultiLine" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <RadioGroup
+            android:id="@+id/RadioGroup_Solution"
+            android:layout_width="175dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/Txt_Solution"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/txt_Reslt"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+            <RadioButton
+                android:id="@+id/Radio_240P"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="240P" />
+
+            <RadioButton
+                android:id="@+id/Radio_320P"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="320P" />
+
+            <RadioButton
+                android:id="@+id/Radio_480P"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="480P" />
+
+            <RadioButton
+                android:id="@+id/Radio_640P"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="640P" />
+
+            <RadioButton
+                android:id="@+id/Radio_720P"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="720P" />
+
+            <RadioButton
+                android:id="@+id/Radio_1080P"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="1080P" />
+        </RadioGroup>
+
+        <RadioGroup
+            android:id="@+id/RadioGroup_FPS"
+            android:layout_width="175dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/Txt_fps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/txt_Fps"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+            <RadioButton
+                android:id="@+id/Radio_10"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="10 fps" />
+
+            <RadioButton
+                android:id="@+id/Radio_15"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="15 fps" />
+
+            <RadioButton
+                android:id="@+id/Radio_20"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="20 fps" />
+
+            <RadioButton
+                android:id="@+id/Radio_25"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="25 fps" />
+
+            <RadioButton
+                android:id="@+id/Radio_30"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="30 fps" />
+        </RadioGroup>
+    </LinearLayout>
 
     <Button
-        android:id="@+id/btn_start"
-        android:layout_width="wrap_content"
+        android:id="@+id/Btn_start"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="14dp"
         android:text="@string/btn_start" />
 
-</RelativeLayout>
+
+</LinearLayout>

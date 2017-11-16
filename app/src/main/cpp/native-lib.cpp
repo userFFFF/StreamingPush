@@ -79,7 +79,6 @@ void RtmpLive_Callback(jint value) {
     jmethodID methodId = env->GetMethodID(objClass, "onCallbak", "(I)V");
     env->CallVoidMethod(mCallBack_Obj, methodId, value);
     env->DeleteLocalRef(objClass);
-    //RtmpLive_JNI_Detachthread((void *)THREAD_NAME);
 }
 
 JNIEXPORT jstring JNICALL
@@ -102,7 +101,6 @@ Java_com_user_streamingpush_RtmpLive_Init(
     mCallBack_Obj = callback ? env->NewGlobalRef(callback) : NULL;
     const char *pUrl = env->GetStringUTFChars(url, false);
     LOGD("url = [%s]", pUrl);
-    int ret = rtmp_success;
     rtmp_t rtmpHandle_t = rtmp_create(pUrl);
     if (rtmpHandle_t == NULL) {
         RtmpLive_Callback(rtmp_create_error);
@@ -111,7 +109,7 @@ Java_com_user_streamingpush_RtmpLive_Init(
         return NULL;
     }
 
-    ret = rtmp_connect((rtmp_t *) rtmpHandle_t);
+    int ret = rtmp_connect((rtmp_t *) rtmpHandle_t);
     RtmpLive_Callback(ret);
     env->ReleaseStringUTFChars(url, pUrl);
 

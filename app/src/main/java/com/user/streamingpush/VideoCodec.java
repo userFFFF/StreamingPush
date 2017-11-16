@@ -42,6 +42,10 @@ public class VideoCodec {
     private static final boolean mDumpOutput = true;
     private static final String mDumpBasePath = Environment.getExternalStorageDirectory() + "/Movies/h264_";
 
+    //RTMP Pusher
+    RtmpLive mRtmpLive = new RtmpLive();
+    private long timestamp = 0;
+
     public void setPlanar(boolean planar) {
         mPlanar = planar;
     }
@@ -64,6 +68,13 @@ public class VideoCodec {
             String date = sTimeFormat.format(new Date());
             mDumpOutputPath = mDumpBasePath + width + "x" + height + "_" + date + ".h264";
         }
+
+        mRtmpLive.InitPusher("rtmp://video-center.alivecdn.com/live/livestream?vhost=push.yangxudong.com", new RtmpLive.onStreamingCallback() {
+            @Override
+            public void onCallbak(int code) {
+                Log.d(TAG, "code = " + code);
+            }
+        });
 
         MediaCodecInfo codecInfo = selectCodec(mime);
         if (codecInfo == null) {
@@ -152,9 +163,9 @@ public class VideoCodec {
                     ByteBuffer outputBuffer = outputBuffers[outputBufferIndex];
                     byte[] output = new byte[bufferInfo.size];
                     outputBuffer.get(output);
-
+                    timestamp += 1000 / this.mFramerate;
                     Log.d(TAG, "output.length = " + output.length);
-
+                    mRtmpLive.StreamPusher(output, output.length, timestamp, 1);
                     if (mDumpOutput) {
                         Utils.dumpOutputBuffer(output, 0, output.length, mDumpOutputPath, true);
                     }
@@ -179,6 +190,8 @@ public class VideoCodec {
     @SuppressLint("NewApi")
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
+        mRtmpLive.StopPusher();
+
         try {
             if (mMediaCodec != null) {
                 mMediaCodec.stop();
