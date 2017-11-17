@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
 
     SharedPreferences mSharedPre;
     SharedPreferences.Editor mEditor;
-    //AudioCapture mAudioCapture = new AudioCapture();
+    AudioCapture mAudioCapture = new AudioCapture();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 mEditor.commit();
                 Log.i(TAG, "rtmp URL" + mRtmpUrl);
                 startActivity(new Intent(MainActivity.this, CameraActivity.class));
-                //mAudioCapture.startAudioRecord();
+                mAudioCapture.startAudioRecord();
             }
         });
     }
@@ -62,22 +62,22 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         RadioButton mRadio_20 = findViewById(R.id.Radio_20);
         RadioButton mRadio_25 = findViewById(R.id.Radio_25);
         RadioButton mRadio_30 = findViewById(R.id.Radio_30);
-        int mFPS = mSharedPre.getInt(Config.FPS, 15);
+        int mFPS = mSharedPre.getInt(Config.FPS, Config.PFS_10);
 
         switch (mFPS) {
-            case 10:
+            case Config.PFS_10:
                 mRadio_10.setChecked(true);
                 break;
-            case 20:
+            case Config.PFS_20:
                 mRadio_20.setChecked(true);
                 break;
-            case 25:
+            case Config.PFS_25:
                 mRadio_25.setChecked(true);
                 break;
-            case 30:
+            case Config.PFS_30:
                 mRadio_30.setChecked(true);
                 break;
-            case 15:
+            case Config.PFS_15:
             default:
                 mRadio_15.setChecked(true);
                 break;
@@ -91,25 +91,25 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         RadioButton mRadio_640P = findViewById(R.id.Radio_640P);
         RadioButton mRadio_720P = findViewById(R.id.Radio_720P);
         RadioButton mRadio_1080P = findViewById(R.id.Radio_1080P);
-        int mResolution = mSharedPre.getInt(Config.RESOLUTION, 480);
+        int mResolution = mSharedPre.getInt(Config.RESOLUTION, Config.Resolution_240P);
 
         switch (mResolution) {
-            case 240:
+            case Config.Resolution_240P:
                 mRadio_240P.setChecked(true);
                 break;
-            case 320:
+            case Config.Resolution_320P:
                 mRadio_320P.setChecked(true);
                 break;
-            case 640:
+            case Config.Resolution_640P:
                 mRadio_640P.setChecked(true);
                 break;
-            case 720:
+            case Config.Resolution_720P:
                 mRadio_720P.setChecked(true);
                 break;
-            case 1080:
+            case Config.Resolution_1080P:
                 mRadio_1080P.setChecked(true);
                 break;
-            case 480:
+            case Config.Resolution_480P:
             default:
                 mRadio_480P.setChecked(true);
                 break;
@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        //mAudioCapture.stopAudioRecord();
+        mAudioCapture.stopAudioRecord();
     }
 
     @Override
@@ -129,57 +129,57 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         switch (checkedId) {
             case R.id.Radio_10:
                 Log.i(TAG, "10 fps");
-                mEditor.putInt(Config.FPS, 10);
+                mEditor.putInt(Config.FPS, Config.PFS_10);
                 mEditor.commit();
                 break;
             case R.id.Radio_15:
                 Log.i(TAG, "15 fps");
-                mEditor.putInt(Config.FPS, 15);
+                mEditor.putInt(Config.FPS, Config.PFS_15);
                 mEditor.commit();
                 break;
             case R.id.Radio_20:
                 Log.i(TAG, "20 fps");
-                mEditor.putInt(Config.FPS, 20);
+                mEditor.putInt(Config.FPS, Config.PFS_20);
                 mEditor.commit();
                 break;
             case R.id.Radio_25:
                 Log.i(TAG, "25 fps");
-                mEditor.putInt(Config.FPS, 25);
+                mEditor.putInt(Config.FPS, Config.PFS_25);
                 mEditor.commit();
                 break;
             case R.id.Radio_30:
                 Log.i(TAG, "30 fps");
-                mEditor.putInt(Config.FPS, 30);
+                mEditor.putInt(Config.FPS, Config.PFS_30);
                 mEditor.commit();
                 break;
             case R.id.Radio_240P:
                 Log.i(TAG, "240P");
-                mEditor.putInt(Config.RESOLUTION, 240);
+                mEditor.putInt(Config.RESOLUTION, Config.Resolution_240P);
                 mEditor.commit();
                 break;
             case R.id.Radio_320P:
                 Log.i(TAG, "320P");
-                mEditor.putInt(Config.RESOLUTION, 320);
+                mEditor.putInt(Config.RESOLUTION, Config.Resolution_320P);
                 mEditor.commit();
                 break;
             case R.id.Radio_480P:
                 Log.i(TAG, "480P");
-                mEditor.putInt(Config.RESOLUTION, 480);
+                mEditor.putInt(Config.RESOLUTION, Config.Resolution_480P);
                 mEditor.commit();
                 break;
             case R.id.Radio_640P:
                 Log.i(TAG, "640P");
-                mEditor.putInt(Config.RESOLUTION, 640);
+                mEditor.putInt(Config.RESOLUTION, Config.Resolution_640P);
                 mEditor.commit();
                 break;
             case R.id.Radio_720P:
                 Log.i(TAG, "720P");
-                mEditor.putInt(Config.RESOLUTION, 720);
+                mEditor.putInt(Config.RESOLUTION, Config.Resolution_720P);
                 mEditor.commit();
                 break;
             case R.id.Radio_1080P:
                 Log.i(TAG, "1080P");
-                mEditor.putInt(Config.RESOLUTION, 1080);
+                mEditor.putInt(Config.RESOLUTION, Config.Resolution_1080P);
                 mEditor.commit();
                 break;
             default:

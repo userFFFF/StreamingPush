@@ -31,6 +31,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     // Camera
     private Camera mCamera;
     private int mCameraNum;
+    private SurfaceTexture mSurface;
     //private Camera.Size mSize;
     private int mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
 
@@ -92,43 +93,43 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     }
 
     private void onFPSConfig() {
-        framerate = mSharedPre.getInt(Config.FPS, 15);
+        framerate = mSharedPre.getInt(Config.FPS, Config.PFS_15);
     }
 
     private void onResolutionConfig() {
-        int mResolution = mSharedPre.getInt(Config.RESOLUTION, 480);
+        int mResolution = mSharedPre.getInt(Config.RESOLUTION, Config.Resolution_480P);
         switch (mResolution) {
-            case 240:
+            case Config.Resolution_240P:
                 mWidth = 320;
                 mHeight = 240;
                 break;
-            case 320:
+            case Config.Resolution_320P:
                 mWidth = 320;
                 mHeight = 480;
                 break;
-            case 480:
+            case Config.Resolution_480P:
                 mWidth = 640;
                 mHeight = 480;
                 break;
-            case 640:
+            case Config.Resolution_640P:
                 mWidth = 720;
                 mHeight = 640;
                 break;
-            case 720:
+            case Config.Resolution_720P:
                 mWidth = 1280;
                 mHeight = 720;
                 break;
-            case 1080:
+            case Config.Resolution_1080P:
                 mWidth = 1920;
                 mHeight = 1080;
                 break;
         }
-
     }
 
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         Log.d(TAG, "onSurfaceTextureAvailable: size:" + width + "x" + height);
+        mSurface = surface;
         createCamera(surface);
         startPreview();
         mVideoCode.initVideoEncoder(mWidth, mHeight, getDegree(), framerate, bitrate);
@@ -161,7 +162,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
             for (int i = 0; i < mCameraNum; i++) {
                 Camera.getCameraInfo(i, info);
                 //
-                if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
+                if (info.facing == mCameraId) {
                     mCamera = Camera.open(i);
                     break;
                 }
@@ -177,6 +178,9 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
             int[] max = determineMaximumSupportedFramerate(mCameraParamters);
             Camera.CameraInfo camInfo = new Camera.CameraInfo();
             Camera.getCameraInfo(mCameraId, camInfo);
+            if (mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                camInfo.orientation += 180;
+            }
             int rotate = (360 + camInfo.orientation - getDegree()) % 360;
             mCameraParamters.setRotation(rotate);
             mCameraParamters.setPreviewFormat(mCameraParamters.getPreviewFormat());
@@ -269,6 +273,15 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
 
     public void switchCamera() {
         if (mCameraNum > 1) {
+            stopPreview();
+            destroyCamera();
+            if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
+                mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+            } else {
+                mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+            }
+            createCamera(mSurface);
+            startPreview();
             Log.i(TAG, "Camera has switched!");
         } else {
             Log.i(TAG, "This device does not support switch camera!");
