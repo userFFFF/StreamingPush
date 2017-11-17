@@ -17,9 +17,9 @@ import java.util.Date;
 public class AudioCapture {
     private static final String TAG = "AudioCapture";
 
-    private int mChannelConfig = AudioFormat.CHANNEL_IN_MONO;
+    private int mChannelConfig = 1;
     private int mAudioEncoding = AudioFormat.ENCODING_PCM_16BIT;
-    private int mFrequence = 44100;
+    private int mSampleRate = 8000;
     private boolean mIsRecording = false;
 
     // Dump Output
@@ -28,22 +28,26 @@ public class AudioCapture {
     private static final String mDumpBasePath = Environment.getExternalStorageDirectory() + "/Movies/pcm_";
 
     private RecordTask mRecorder;
+    private RtmpLive mRtmpLive;
+    private AudioCodec mAudioCodec = new AudioCodec();
 
-    public void startAudioRecord() {
+    public void startAudioRecord(RtmpLive rtmpLive) {
         Log.d(TAG, "startAudioRecord");
         mRecorder = new RecordTask();
         mRecorder.execute();
+        this.mRtmpLive = rtmpLive;
 
         if (mDumpOutput) {
             SimpleDateFormat sTimeFormat = new SimpleDateFormat("yyyyMMddhhmmss");
             String date = sTimeFormat.format(new Date());
-            mDumpOutputPath = mDumpBasePath + mFrequence + "_" + mChannelConfig
+            mDumpOutputPath = mDumpBasePath + mSampleRate + "_" + mChannelConfig
                     + "_" + mAudioEncoding + "_" + date + ".pcm";
         }
     }
 
     public void stopAudioRecord() {
         mIsRecording = false;
+        mAudioCodec.onDestroy();
     }
 
     class RecordTask extends AsyncTask<Void, Integer, Void> {
@@ -52,16 +56,18 @@ public class AudioCapture {
             mIsRecording = true;
             Log.d(TAG, "AudioRecording");
             try {
-                int bufferSize = AudioRecord.getMinBufferSize(mFrequence, mChannelConfig, mAudioEncoding);
+                int bufferSize = AudioRecord.getMinBufferSize(mSampleRate, mChannelConfig, mAudioEncoding);
                 AudioRecord mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
-                        mFrequence, mChannelConfig, mAudioEncoding, bufferSize);
+                        mSampleRate, mChannelConfig, mAudioEncoding, bufferSize);
                 byte[] buffer = new byte[bufferSize * 2];
 
+                mAudioCodec.initAudioEncoder(mSampleRate, mChannelConfig, mAudioEncoding, mRtmpLive);
                 mAudioRecord.startRecording();
 
                 while (mIsRecording) {
                     int bufferReadResult = mAudioRecord.read(buffer, 0, buffer.length);
                     Log.d(TAG, "read sample bufferReadResult: " + bufferReadResult);
+                    mAudioCodec.onPcmFrameEncoding(buffer);
                     Utils.dumpOutputBuffer(buffer, 0, bufferReadResult, mDumpOutputPath, true);
                 }
 

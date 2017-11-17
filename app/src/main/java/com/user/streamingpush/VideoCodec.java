@@ -43,8 +43,7 @@ public class VideoCodec {
     private static final String mDumpBasePath = Environment.getExternalStorageDirectory() + "/Movies/h264_";
 
     //RTMP Pusher
-    RtmpLive mRtmpLive = new RtmpLive();
-    private long timestamp = 0;
+    RtmpLive mRtmpLive;
 
     public void setPlanar(boolean planar) {
         mPlanar = planar;
@@ -55,26 +54,20 @@ public class VideoCodec {
     }
 
     @SuppressLint("NewApi")
-    public void initVideoEncoder(int width, int height, int degree, int framerate, int bitrate) {
+    public void initVideoEncoder(int width, int height, int degree, int framerate, int bitrate, RtmpLive rtmpLive) {
         Log.d(TAG, "initVideoEncoder");
         this.mWidth = width;
         this.mHeight = height;
         this.mFramerate = framerate;
         this.mBitrate = bitrate;
         this.mDegree = degree;
+        this.mRtmpLive = rtmpLive;
 
         if (mDumpOutput) {
             SimpleDateFormat sTimeFormat = new SimpleDateFormat("yyyyMMddhhmmss");
             String date = sTimeFormat.format(new Date());
             mDumpOutputPath = mDumpBasePath + width + "x" + height + "_" + date + ".h264";
         }
-
-        mRtmpLive.InitPusher("rtmp://video-center.alivecdn.com/live/livestream?vhost=push.yangxudong.com", new RtmpLive.onStreamingCallback() {
-            @Override
-            public void onCallbak(int code) {
-                Log.d(TAG, "code = " + code);
-            }
-        });
 
         MediaCodecInfo codecInfo = selectCodec(mime);
         if (codecInfo == null) {
@@ -163,9 +156,9 @@ public class VideoCodec {
                     ByteBuffer outputBuffer = outputBuffers[outputBufferIndex];
                     byte[] output = new byte[bufferInfo.size];
                     outputBuffer.get(output);
-                    timestamp += 1000 / this.mFramerate;
+                    long timestamp = System.currentTimeMillis();
                     Log.d(TAG, "output.length = " + output.length);
-                    mRtmpLive.StreamPusher(output, output.length, timestamp, 1);
+                    mRtmpLive.StreamPusher(output, output.length, timestamp, Config.MEDIA_TYPE_VIDEO);
                     if (mDumpOutput) {
                         Utils.dumpOutputBuffer(output, 0, output.length, mDumpOutputPath, true);
                     }
@@ -190,7 +183,6 @@ public class VideoCodec {
     @SuppressLint("NewApi")
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
-        mRtmpLive.StopPusher();
 
         try {
             if (mMediaCodec != null) {

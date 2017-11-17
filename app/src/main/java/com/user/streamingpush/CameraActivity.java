@@ -32,8 +32,9 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     private Camera mCamera;
     private int mCameraNum;
     private SurfaceTexture mSurface;
+    private int cameraRotationOffset;
     //private Camera.Size mSize;
-    private int mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+    private int mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
 
     //View
     private Button mSwitchCamButton;
@@ -51,6 +52,12 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     SharedPreferences mSharedPre;
     SharedPreferences.Editor mEditor;
 
+    //RTMP Live
+    RtmpLive mRtmpLive = new RtmpLive();
+
+    //Audio
+    AudioCapture mAudioCapture = new AudioCapture();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,9 +72,17 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         onFPSConfig();
         onResolutionConfig();
 
-
         Log.d(TAG, "mURL: " + mURL + " framerate: " + framerate + " resolution: " + mWidth + "x" + mHeight);
 
+        mRtmpLive.InitPusher(mURL, new RtmpLive.onStreamingCallback() {
+            @Override
+            public void onCallbak(int code) {
+                Log.d(TAG, "code = " + code);
+            }
+        });
+
+
+        mAudioCapture.startAudioRecord(mRtmpLive);
         mTextureView = findViewById(R.id.camera_preview);
         mTextureView.setSurfaceTextureListener(this);
 
@@ -88,7 +103,9 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     protected void onDestroy() {
         super.onDestroy();
         destroyCamera();
+        mAudioCapture.stopAudioRecord();
         mVideoCode.onDestroy();
+        mRtmpLive.StopPusher();
 
     }
 
@@ -132,7 +149,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         mSurface = surface;
         createCamera(surface);
         startPreview();
-        mVideoCode.initVideoEncoder(mWidth, mHeight, getDegree(), framerate, bitrate);
+        mVideoCode.initVideoEncoder(mWidth, mHeight, getDegree(), framerate, bitrate, mRtmpLive);
     }
 
     @Override
@@ -178,10 +195,13 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
             int[] max = determineMaximumSupportedFramerate(mCameraParamters);
             Camera.CameraInfo camInfo = new Camera.CameraInfo();
             Camera.getCameraInfo(mCameraId, camInfo);
+
+            cameraRotationOffset = camInfo.orientation;
+            Log.d(TAG, "cameraRotationOffset: " + cameraRotationOffset);
             if (mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                camInfo.orientation += 180;
+                cameraRotationOffset += 180;
             }
-            int rotate = (360 + camInfo.orientation - getDegree()) % 360;
+            int rotate = (360 + cameraRotationOffset - getDegree()) % 360;
             mCameraParamters.setRotation(rotate);
             mCameraParamters.setPreviewFormat(mCameraParamters.getPreviewFormat());
 //            List<Camera.Size> sizes = mCameraParamters.getSupportedPreviewSizes();
@@ -203,7 +223,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
             mCameraParamters.setPreviewFpsRange(max[0], max[1]);
             mCamera.setParameters(mCameraParamters);
             mCamera.autoFocus(null);
-            int displayRotation = (camInfo.orientation - getDegree() + 360) % 360;
+            int displayRotation = (cameraRotationOffset - getDegree() + 360) % 360;
             mCamera.setDisplayOrientation(displayRotation);
             mCamera.setPreviewTexture(surface);
             return true;
@@ -265,8 +285,14 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {
-            Log.i(TAG, "onPreviewFrame");
-            byte dst[] = mVideoCode.onPreviewFrameEncoding(data);
+            //Log.i(TAG, "onPreviewFrame cameraRotationOffset: " + cameraRotationOffset);
+            byte dst[];
+            if (cameraRotationOffset / 180 != 0) { // TODO FRONT
+                byte[] rotation = Utils.rotateYUV420Degree180(data, mWidth, mHeight);
+                dst = mVideoCode.onPreviewFrameEncoding(rotation);
+            } else {
+                dst = mVideoCode.onPreviewFrameEncoding(data);
+            }
             camera.addCallbackBuffer(dst);
         }
     };

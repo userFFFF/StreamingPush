@@ -21,4 +21,7 @@ public class Config {
     public static final int Resolution_720P = 720;
     public static final int Resolution_1080P = 1080;
 
+    public static final int MEDIA_TYPE_AUDIO = 0x00;
+    public static final int MEDIA_TYPE_VIDEO = 0x01;
+
 }

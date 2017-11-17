@@ -33,10 +33,14 @@ public class AudioCodec {
     private static final boolean mDumpOutput = true;
     private static final String mDumpBasePath = Environment.getExternalStorageDirectory() + "/Movies/AAC_";
 
-    public void initAudioEncoder(int samplerate, int channelconfig, int sampletype) {
+    //RtmpLive
+    RtmpLive mRtmpLive;
+
+    public void initAudioEncoder(int samplerate, int channelconfig, int sampletype, RtmpLive rtmpLive) {
         this.mSamplerate = samplerate;
         this.mChannelConfig = channelconfig;
         this.mSampleType = sampletype;
+        this.mRtmpLive = rtmpLive;
 
         if (mDumpOutput) {
             SimpleDateFormat sTimeFormat = new SimpleDateFormat("yyyyMMddhhmmss");
@@ -46,12 +50,15 @@ public class AudioCodec {
         try {
             mMediaCodec = MediaCodec.createEncoderByType(mime);
 
-            MediaFormat mediaFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, this.mSamplerate, this.mChannelConfig);
+            MediaFormat mediaFormat = new MediaFormat();
+            mediaFormat.setString(MediaFormat.KEY_MIME, mime);
             mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 1000 * 122);
             mediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 16 * 1024);
-            mediaFormat.setInteger(MediaFormat.KEY_CHANNEL_MASK, this.mSampleType);
+            mediaFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, this.mChannelConfig);
+            mediaFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, this.mSamplerate);
             mediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
             mMediaCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+            mMediaCodec.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -83,7 +90,8 @@ public class AudioCodec {
                     outputBuffer.get(output);
 
                     Log.d(TAG, "output.length = " + output.length);
-
+                    long timestamp = System.currentTimeMillis();
+                    mRtmpLive.StreamPusher(output, output.length, timestamp, Config.MEDIA_TYPE_AUDIO);
                     if (mDumpOutput) {
                         Utils.dumpOutputBuffer(output, 0, output.length, mDumpOutputPath, true);
                     }

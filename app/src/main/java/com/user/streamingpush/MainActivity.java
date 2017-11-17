@@ -20,7 +20,6 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
 
     SharedPreferences mSharedPre;
     SharedPreferences.Editor mEditor;
-    AudioCapture mAudioCapture = new AudioCapture();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +50,6 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 mEditor.commit();
                 Log.i(TAG, "rtmp URL" + mRtmpUrl);
                 startActivity(new Intent(MainActivity.this, CameraActivity.class));
-                mAudioCapture.startAudioRecord();
             }
         });
     }
@@ -119,7 +117,6 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mAudioCapture.stopAudioRecord();
     }
 
     @Override
