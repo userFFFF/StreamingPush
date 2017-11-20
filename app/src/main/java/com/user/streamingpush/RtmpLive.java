@@ -23,11 +23,11 @@ public class RtmpLive {
      * A native method that is implemented by the 'rtmplive-lib' native library,
      * which is packaged with this application.
      */
-    public native long Init(String url, onStreamingCallback callback);
+    private native long Init(String url, onStreamingCallback callback);
 
-    public native int PushStreaming(long pushObj, byte[] data, int size, long timestamp, int type);
+    private native int PushStreaming(long pushObj, byte[] data, int size, long timestamp, int type);
 
-    public native void Stop(long pushObj);
+    private native void Stop(long pushObj);
 
     public void InitPusher(String url, onStreamingCallback mCallback) {
         mPusherObj = Init(url, mCallback);
