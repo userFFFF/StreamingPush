@@ -47596,10 +47596,10 @@ int srs_write_aac_adts_frames(Context* context,
         }
 
         // override by user specified.
-        codec.sound_format = sound_format;
-        codec.sound_rate = sound_rate;
-        codec.sound_size = sound_size;
-        codec.sound_type = sound_type;
+        //codec.sound_format = sound_format;
+        //codec.sound_rate = sound_rate;
+        //codec.sound_size = sound_size;
+        //codec.sound_type = sound_type;
 
         if ((ret = srs_write_aac_adts_frame(context, &codec, frame, frame_size, timestamp)) != ERROR_SUCCESS) {
             return ret;

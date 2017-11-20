@@ -45,7 +45,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
 
     //Parameter
     private int mWidth = 640, mHeight = 480;
-    private int framerate = 15;
+    private int framerate = 20;
     private int bitrate = 2 * mWidth * mHeight * framerate / 20;
 
     //SharedPreferences
@@ -56,7 +56,8 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     RtmpLive mRtmpLive = new RtmpLive();
 
     //Audio
-    AudioCapture mAudioCapture = new AudioCapture();
+    private AudioStream mAudioStream;
+    //AudioCapture mAudioCapture = new AudioCapture();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,8 +82,17 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
             }
         });
 
+        bitrate = (int) (mWidth * mHeight * framerate * 2 * 0.05f);
+        if (mWidth >= 1920 || mHeight >= 1920) {
+            bitrate *= 0.3;
+        } else if (mWidth >= 1280 || mHeight >= 1280) {
+            bitrate *= 0.4;
+        } else if (mWidth >= 720 || mHeight >= 720) {
+            bitrate *= 0.6;
+        }
 
-        mAudioCapture.startAudioRecord(mRtmpLive);
+        mAudioStream = new AudioStream(mRtmpLive);
+        mAudioStream.startRecord();
         mTextureView = findViewById(R.id.camera_preview);
         mTextureView.setSurfaceTextureListener(this);
 
@@ -103,7 +113,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     protected void onDestroy() {
         super.onDestroy();
         destroyCamera();
-        mAudioCapture.stopAudioRecord();
+        mAudioStream.stop();
         mVideoCode.onDestroy();
         mRtmpLive.StopPusher();
 

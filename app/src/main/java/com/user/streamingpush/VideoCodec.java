@@ -39,7 +39,6 @@ public class VideoCodec {
 
     // Dump Output
     private String mDumpOutputPath;
-    private static final boolean mDumpOutput = true;
     private static final String mDumpBasePath = Environment.getExternalStorageDirectory() + "/Movies/h264_";
 
     //RTMP Pusher
@@ -63,7 +62,7 @@ public class VideoCodec {
         this.mDegree = degree;
         this.mRtmpLive = rtmpLive;
 
-        if (mDumpOutput) {
+        if (Config.DumpOutput) {
             SimpleDateFormat sTimeFormat = new SimpleDateFormat("yyyyMMddhhmmss");
             String date = sTimeFormat.format(new Date());
             mDumpOutputPath = mDumpBasePath + width + "x" + height + "_" + date + ".h264";
@@ -159,7 +158,7 @@ public class VideoCodec {
                     long timestamp = System.currentTimeMillis();
                     Log.d(TAG, "output.length = " + output.length);
                     mRtmpLive.StreamPusher(output, output.length, timestamp, Config.MEDIA_TYPE_VIDEO);
-                    if (mDumpOutput) {
+                    if (Config.DumpOutput) {
                         Utils.dumpOutputBuffer(output, 0, output.length, mDumpOutputPath, true);
                     }
                     mMediaCodec.releaseOutputBuffer(outputBufferIndex, false);
