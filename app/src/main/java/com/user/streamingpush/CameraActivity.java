@@ -74,6 +74,10 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         onResolutionConfig();
 
         Log.d(TAG, "mURL: " + mURL + " framerate: " + framerate + " resolution: " + mWidth + "x" + mHeight);
+        if (mURL == null) {
+            Log.e(TAG, "NULL SERVER URL!!!!!!!!!");
+            return;
+        }
 
         mRtmpLive.InitPusher(mURL, new RtmpLive.onStreamingCallback() {
             @Override
@@ -131,8 +135,8 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
                 mHeight = 240;
                 break;
             case Config.Resolution_320P:
-                mWidth = 320;
-                mHeight = 480;
+                mWidth = 480;
+                mHeight = 320;
                 break;
             case Config.Resolution_480P:
                 mWidth = 640;
