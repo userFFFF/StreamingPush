@@ -82,6 +82,19 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         mRtmpLive.InitPusher(mURL, new RtmpLive.onStreamingCallback() {
             @Override
             public void onCallbak(int code) {
+                switch (code) {
+                    case CODE.RTMP_STREAM_SIZE_ERR:
+                    case CODE.RTMP_HANDLER_ERR:
+                    case CODE.RTMP_STREAM_UNSUPPORT:
+                    case CODE.RTMP_STREAM_ERR:
+                    case CODE.RTMP_CONNECT_ERR:
+                    case CODE.RTMP_HANDSHAKE_ERR:
+                    case CODE.RTMP_CTREATE_ERR:
+                    case CODE.RTMP_STATE_SUCCESS:
+                    case CODE.RTMP_STATE_CONNECTED:
+                    case CODE.RTMP_STATE_STOPED:
+                        break;
+                }
                 Log.d(TAG, "code = " + code);
             }
         });

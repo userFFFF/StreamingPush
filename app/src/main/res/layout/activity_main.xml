@@ -18,7 +18,8 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:hint="URL:"
-        android:inputType="textMultiLine" />
+        android:inputType="textMultiLine"
+        android:text="rtmp://192.168.199.56:1935/live/livestream" />
 
     <LinearLayout
         android:layout_width="match_parent"
