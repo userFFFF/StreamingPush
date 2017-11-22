@@ -19,7 +19,7 @@ public class RtmpLive {
             public static final int RTMP_STREAM_ERR = -4;
             public static final int RTMP_CONNECT_ERR = -3;
             public static final int RTMP_HANDSHAKE_ERR = -2;
-            public static final int RTMP_CTREATE_ERR = -1;
+            public static final int RTMP_CREATE_ERR = -1;
             public static final int RTMP_STATE_SUCCESS = 0;
             public static final int RTMP_STATE_CONNECTED = 1;
             public static final int RTMP_STATE_STOPED = 2;

@@ -89,7 +89,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
                     case CODE.RTMP_STREAM_ERR:
                     case CODE.RTMP_CONNECT_ERR:
                     case CODE.RTMP_HANDSHAKE_ERR:
-                    case CODE.RTMP_CTREATE_ERR:
+                    case CODE.RTMP_CREATE_ERR:
                     case CODE.RTMP_STATE_SUCCESS:
                     case CODE.RTMP_STATE_CONNECTED:
                     case CODE.RTMP_STATE_STOPED:
