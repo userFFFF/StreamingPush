@@ -1,6 +1,8 @@
 package com.user.streamingpush;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
@@ -11,15 +13,26 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Toast;
+
+import com.example.cloudmedia.CloudMedia;
+import com.example.cloudmedia.LocalMediaNode;
 
 public class MainActivity extends AppCompatActivity implements RadioGroup.OnCheckedChangeListener {
     public static final String TAG = "MainActivity";
-    private Button startbtn;
-    EditText mEditText;
-    String mRtmpUrl;
+    private Button mLoginBtn;
+    private Button mLogoutBtn;
+    private EditText mEditText;
+    //private String mRtmpUrl;
+    private String mLoginNickName;
 
-    SharedPreferences mSharedPre;
-    SharedPreferences.Editor mEditor;
+    private boolean mOnline = false;
+
+    private SharedPreferences mSharedPre;
+    private SharedPreferences.Editor mEditor;
+
+    private LocalMediaNode mLocalMediaNode;
+    private CloudMedia mCloudMedia;//= new CloudMedia(this, "ABCD");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,22 +47,95 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         mRadioGroup_FPS.setOnCheckedChangeListener(this);
         mSharedPre = getSharedPreferences(Config.NAME, Activity.MODE_PRIVATE);
         mEditor = mSharedPre.edit();
-
+        //mCloudMedia = new CloudMedia(this, "USER0");
         onResolutionChecked();
         onFPSSetChecked();
+        onAlertDialog();
+        //String mURL = mSharedPre.getString(Config.SERVER_URL, "rtmp://192.168.199.56:1935/live/livestream");
+        //mEditText.setText(mURL);
 
-        String mURL = mSharedPre.getString(Config.SERVER_URL, "");
-        mEditText.setText(mURL);
-
-        startbtn = findViewById(R.id.Btn_start);
-        startbtn.setOnClickListener(new View.OnClickListener() {
+        mLoginBtn = findViewById(R.id.Btn_login);
+        mLoginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mRtmpUrl = mEditText.getText().toString();
-                mEditor.putString(Config.SERVER_URL, mRtmpUrl);
+                if (mOnline == false) {
+                    if (mCloudMedia == null) {
+                        mLoginNickName = mEditText.getText().toString();
+                        if (mLoginNickName == null) {
+                            mLoginNickName = "USER0";
+                        }
+
+                        mCloudMedia = new CloudMedia(getApplicationContext(), mLoginNickName, CloudMedia.ROLE_PUSHER);
+                        onCloudMediaUpdate();
+                    } else {
+                        mCloudMedia.putOnline(new CloudMedia.SimpleActionListener() {
+                            @Override
+                            public boolean onResult(String s) {
+                                mOnline = true;
+                                mLoginBtn.setEnabled(false);
+                                mLogoutBtn.setEnabled(true);
+                                return true;
+                            }
+                        });
+                    }
+                }
+                //mEditor.putString(Config.SERVER_URL, mRtmpUrl);
+                //mEditor.commit();
+                //Log.i(TAG, "rtmp URL" + mRtmpUrl);
+                //startActivity(new Intent(MainActivity.this, CameraActivity.class));
+            }
+        });
+        mLogoutBtn = findViewById(R.id.Btn_logout);
+        mLogoutBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCloudMedia.putOffline(new CloudMedia.SimpleActionListener() {
+                    @Override
+                    public boolean onResult(String s) {
+                        Log.d(TAG, "Off Line");
+                        mOnline = false;
+                        mLoginBtn.setEnabled(true);
+                        mLogoutBtn.setEnabled(false);
+                        return true;
+                    }
+                });
+            }
+        });
+    }
+
+    private void onCloudMediaUpdate() {
+        mCloudMedia.connect(
+                new CloudMedia.SimpleActionListener() {
+                    @Override
+                    public boolean onResult(String result) {
+                        Log.i(TAG, "connect result is: " + result);
+                        mLoginBtn.setEnabled(false);
+                        mOnline = true;
+                        return true;
+                    }
+                });
+        mLocalMediaNode = mCloudMedia.declareLocalMediaNode();
+        mLocalMediaNode.setOnStartPushMediaActor(new LocalMediaNode.OnStartPushMedia() {
+            @Override
+            public boolean onStartPushMedia(String params) {
+                Log.d(TAG, "onStartPushMedia params: " + params);
+                if (params == null) {
+                    Toast.makeText(getApplicationContext(), "RTMP Server IP is error!", Toast.LENGTH_SHORT);
+                    return false;
+                }
+                mEditor.putString(Config.SERVER_URL, params);
                 mEditor.commit();
-                Log.i(TAG, "rtmp URL" + mRtmpUrl);
-                startActivity(new Intent(MainActivity.this, CameraActivity.class));
+
+                onAlertDialog();
+                //startActivity(new Intent(MainActivity.this, CameraActivity.class));
+                return true;
+            }
+        });
+        mLocalMediaNode.setOnStopPushMediaActor(new LocalMediaNode.OnStopPushMedia() {
+            @Override
+            public boolean onStopPushMedia(String params) {
+                Log.d(TAG, "onStopPushMedia");
+                return true;
             }
         });
     }
@@ -117,6 +203,28 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+
+    private void onAlertDialog() {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setMessage(R.string.txt_acceptlive);
+        dialog.setPositiveButton(R.string.txt_accept,
+                new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startActivity(new Intent(MainActivity.this, CameraActivity.class));
+                    }
+                });
+        dialog.setNegativeButton(R.string.txt_reject,
+                new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        dialog.show();
     }
 
     @Override

@@ -38,6 +38,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
 
     //View
     private Button mSwitchCamButton;
+    private Button mQuitLive;
     private TextureView mTextureView;
 
     //Video Codec
@@ -57,7 +58,6 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
 
     //Audio
     private AudioStream mAudioStream;
-    //AudioCapture mAudioCapture = new AudioCapture();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,13 +113,22 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         mTextureView = findViewById(R.id.camera_preview);
         mTextureView.setSurfaceTextureListener(this);
 
-        mSwitchCamButton = findViewById(R.id.btn_switchCam);
+        mSwitchCamButton = findViewById(R.id.Btn_switchCam);
         mSwitchCamButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 switchCamera();
             }
         });
+
+        mQuitLive = findViewById(R.id.Btn_quitlive);
+        mQuitLive.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
     }
 
     @Override

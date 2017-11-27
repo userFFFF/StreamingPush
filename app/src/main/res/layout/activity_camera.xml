@@ -15,11 +15,18 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/btn_switchCam"
-            android:layout_width="wrap_content"
+            android:id="@+id/Btn_switchCam"
+            android:layout_width="210dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/switch_camera" />
+
+        <Button
+            android:id="@+id/Btn_quitlive"
+            android:layout_width="210dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/txt_QuitLive" />
 
     </LinearLayout>
 
