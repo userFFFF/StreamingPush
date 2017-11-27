@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         //mCloudMedia = new CloudMedia(this, "USER0");
         onResolutionChecked();
         onFPSSetChecked();
-        onAlertDialog();
         //String mURL = mSharedPre.getString(Config.SERVER_URL, "rtmp://192.168.199.56:1935/live/livestream");
         //mEditText.setText(mURL);
 
