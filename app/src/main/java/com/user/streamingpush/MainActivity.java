@@ -18,12 +18,16 @@ import android.widget.Toast;
 import com.example.cloudmedia.CloudMedia;
 import com.example.cloudmedia.LocalMediaNode;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+
 public class MainActivity extends AppCompatActivity implements RadioGroup.OnCheckedChangeListener {
     public static final String TAG = "MainActivity";
     private Button mLoginBtn;
     private Button mLogoutBtn;
     private EditText mEditText;
-    //private String mRtmpUrl;
+    private String mRtmpUrl;
     private String mLoginNickName;
 
     private boolean mOnline = false;
@@ -57,17 +61,16 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         mLoginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mLoginNickName = mEditText.getText().toString();
+                if (mLoginNickName == null) {
+                    mLoginNickName = "USER0";
+                }
                 if (mOnline == false) {
                     if (mCloudMedia == null) {
-                        mLoginNickName = mEditText.getText().toString();
-                        if (mLoginNickName == null) {
-                            mLoginNickName = "USER0";
-                        }
-
-                        mCloudMedia = new CloudMedia(getApplicationContext(), mLoginNickName, CloudMedia.ROLE_PUSHER);
+                        mCloudMedia = new CloudMedia(getApplicationContext());
                         onCloudMediaUpdate();
                     } else {
-                        mCloudMedia.putOnline(new CloudMedia.SimpleActionListener() {
+                        mCloudMedia.putOnline(mLoginNickName, CloudMedia.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
                             @Override
                             public boolean onResult(String s) {
                                 mOnline = true;
@@ -88,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         mLogoutBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCloudMedia.putOffline(new CloudMedia.SimpleActionListener() {
+                mCloudMedia.putOffline(mLoginNickName, CloudMedia.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
                     @Override
                     public boolean onResult(String s) {
                         Log.d(TAG, "Off Line");
@@ -108,21 +111,41 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                     @Override
                     public boolean onResult(String result) {
                         Log.i(TAG, "connect result is: " + result);
-                        mLoginBtn.setEnabled(false);
-                        mOnline = true;
+                        mCloudMedia.putOnline(mLoginNickName, CloudMedia.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
+                            @Override
+                            public boolean onResult(String s) {
+                                mOnline = true;
+                                mLoginBtn.setEnabled(false);
+                                mLogoutBtn.setEnabled(true);
+                                return true;
+                            }
+                        });
                         return true;
                     }
                 });
+
         mLocalMediaNode = mCloudMedia.declareLocalMediaNode();
         mLocalMediaNode.setOnStartPushMediaActor(new LocalMediaNode.OnStartPushMedia() {
             @Override
             public boolean onStartPushMedia(String params) {
                 Log.d(TAG, "onStartPushMedia params: " + params);
                 if (params == null) {
-                    Toast.makeText(getApplicationContext(), "RTMP Server IP is error!", Toast.LENGTH_SHORT);
+                    Toast.makeText(getApplicationContext(), "params is NULL!", Toast.LENGTH_SHORT);
                     return false;
                 }
-                mEditor.putString(Config.SERVER_URL, params);
+
+                try {
+                    JSONObject mJSOONObj = new JSONObject(params);
+                    mRtmpUrl = mJSOONObj.getString("url");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                if (mRtmpUrl == null) {
+                    Toast.makeText(getApplicationContext(), "RTMP Server IP is NULL!", Toast.LENGTH_SHORT);
+                    return false;
+                }
+
+                mEditor.putString(Config.SERVER_URL, mRtmpUrl);
                 mEditor.commit();
 
                 onAlertDialog();
