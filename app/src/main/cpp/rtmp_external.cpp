@@ -29,7 +29,7 @@ int rtmp_push_scriptdata(rtmp_t rtmp, bool bHasVideo,
 
 int rtmp_push_video(rtmp_t rtmp,
                     char *framedata, int framesize, uint32_t dts, uint32_t pts) {
-    if (framedata[4] & 0x1F == 7) {
+    if (framedata[4] & 0x1F == 7) {// onMetadata
         int width, height, fps, nSPSsize;
         nSPSsize = h264_get_sps(framedata, framesize);
         h264_decode_sps((unsigned char *)framedata, nSPSsize, width, height, fps);

@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                         mCloudMedia = new CloudMedia(getApplicationContext());
                         onCloudMediaUpdate();
                     } else {
-                        mCloudMedia.putOnline(mLoginNickName, CloudMedia.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
+                        mCloudMedia.putOnline(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
                             @Override
                             public boolean onResult(String s) {
                                 mOnline = true;
@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         mLogoutBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCloudMedia.putOffline(mLoginNickName, CloudMedia.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
+                mCloudMedia.putOffline(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
                     @Override
                     public boolean onResult(String s) {
                         Log.d(TAG, "Off Line");
@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                     @Override
                     public boolean onResult(String result) {
                         Log.i(TAG, "connect result is: " + result);
-                        mCloudMedia.putOnline(mLoginNickName, CloudMedia.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
+                        mCloudMedia.putOnline(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
                             @Override
                             public boolean onResult(String s) {
                                 mOnline = true;
@@ -236,6 +236,13 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         startActivity(new Intent(MainActivity.this, CameraActivity.class));
+                        mCloudMedia.updateMyStatus(CloudMedia.CMStatus.PUSHING, new CloudMedia.SimpleActionListener() {
+                            @Override
+                            public boolean onResult(String s) {
+                                Log.i(TAG, "updateMyStatus - CMStatus.PUSHING");
+                                return true;
+                            }
+                        });
                     }
                 });
         dialog.setNegativeButton(R.string.txt_reject,

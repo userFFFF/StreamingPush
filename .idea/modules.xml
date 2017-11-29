@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/StreamingPush.iml" filepath="$PROJECT_DIR$/StreamingPush.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/pushclientsdk/pushclientsdk.iml" filepath="$PROJECT_DIR$/pushclientsdk/pushclientsdk.iml" />
     </modules>
   </component>
 </project>
