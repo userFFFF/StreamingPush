@@ -106,23 +106,19 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     }
 
     private void onCloudMediaUpdate() {
-        mCloudMedia.connect(
-                new CloudMedia.SimpleActionListener() {
-                    @Override
-                    public boolean onResult(String result) {
-                        Log.i(TAG, "connect result is: " + result);
-                        mCloudMedia.putOnline(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
-                            @Override
-                            public boolean onResult(String s) {
-                                mOnline = true;
-                                mLoginBtn.setEnabled(false);
-                                mLogoutBtn.setEnabled(true);
-                                return true;
-                            }
-                        });
-                        return true;
-                    }
-                });
+        mCloudMedia.connect(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.FullActionListener() {
+            @Override
+            public void onSuccess(String s) {
+                mOnline = true;
+                mLoginBtn.setEnabled(false);
+                mLogoutBtn.setEnabled(true);
+            }
+
+            @Override
+            public void onFailure(String s) {
+                Log.e(TAG, "connect onFailure");
+            }
+        });
 
         mLocalMediaNode = mCloudMedia.declareLocalMediaNode();
         mLocalMediaNode.setOnStartPushMediaActor(new LocalMediaNode.OnStartPushMedia() {
