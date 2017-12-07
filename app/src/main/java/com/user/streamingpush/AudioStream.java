@@ -20,8 +20,8 @@ import java.util.Date;
 
 public class AudioStream {
     private static final String TAG = "AudioStream";
-    private int mSamplingRate = 8000;
-    private int bitRate = 16000;
+    private int mSamplingRate = 44100;
+    private int bitRate = 122000;
     private int BUFFER_SIZE = 1920;
     private int mSamplingRateIndex = 0;
     private static final int ADTS_HEADER_SIZE = 7;
@@ -85,14 +85,14 @@ public class AudioStream {
                 int len, bufferIndex;
                 try {
                     int bufferSize = AudioRecord.getMinBufferSize(mSamplingRate,
-                            AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+                            AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT);
                     mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
-                            mSamplingRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, bufferSize);
+                            mSamplingRate, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT, bufferSize);
                     mMediaCodec = MediaCodec.createEncoderByType(MIME);
                     MediaFormat mediaFormat = new MediaFormat();
                     mediaFormat.setString(MediaFormat.KEY_MIME, MIME);
                     mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
-                    mediaFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 1);
+                    mediaFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 2);
                     mediaFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, mSamplingRate);
                     mediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE,
                             MediaCodecInfo.CodecProfileLevel.AACObjectLC);
@@ -176,9 +176,11 @@ public class AudioStream {
                     outputBuffer.get(mBuffer.array(), ADTS_HEADER_SIZE, mBufferInfo.size);
                     outputBuffer.clear();
                     mBuffer.position(ADTS_HEADER_SIZE + mBufferInfo.size);
-                    addADTStoPacket(mBuffer.array(), mBufferInfo.size + ADTS_HEADER_SIZE);
+                    adts_write_frame_header(mBuffer.array(), mBufferInfo.size + ADTS_HEADER_SIZE, 0, MediaCodecInfo.CodecProfileLevel.AACObjectLC, 2);
+                    //addADTStoPacket(mBuffer.array(), mBufferInfo.size + ADTS_HEADER_SIZE);
                     mBuffer.flip();
                     long timestamp = System.currentTimeMillis();
+                    Log.d(TAG, "mBufferInfo.size: " + mBufferInfo.size);
                     mRtmpLive.StreamPusher(mBuffer.array(), mBufferInfo.size + ADTS_HEADER_SIZE,
                             timestamp, Config.MEDIA_TYPE_AUDIO);
                     if (Config.DumpOutput) {
@@ -201,14 +203,23 @@ public class AudioStream {
         }
     }
 
-    private void addADTStoPacket(byte[] packet, int packetLen) {
+    private void adts_write_frame_header(byte[] packet, int packetLen, int pce_size,
+                                         int objecttype, int channel_conf) {
+        byte kFieldId = 0;
+        byte kMpegLayer = 0;
+        byte kProtectionAbsense = 1;// 1: kAdtsHeaderLength = 7
+        byte kPrivateStream = 0;
+        byte kCopyright = 0;// 4 bits from originality to copyright start
+        int kBufferFullness = 0x7FF;//VBR
+        byte kFrameCount = 0;
+
         packet[0] = (byte) 0xFF;
-        packet[1] = (byte) 0xF1;
-        packet[2] = (byte) (((2 - 1) << 6) + (mSamplingRateIndex << 2) + (1 >> 2));
-        packet[3] = (byte) (((1 & 3) << 6) + (packetLen >> 11));
-        packet[4] = (byte) ((packetLen & 0x7FF) >> 3);
-        packet[5] = (byte) (((packetLen & 7) << 5) + 0x1F);
-        packet[6] = (byte) 0xFC;
+        packet[1] = (byte) (0xF0 | (kFieldId << 3) | (kMpegLayer << 1) | kProtectionAbsense);
+        packet[2] = (byte) (((objecttype - 1) << 6) | (mSamplingRateIndex << 2) | (kPrivateStream << 1) | (channel_conf >> 2));
+        packet[3] = (byte) (((channel_conf & 3) << 6) | (kCopyright << 2) | ((packetLen & 0x1800) >> 11));
+        packet[4] = (byte) ((packetLen & 0x07F8) >> 3);
+        packet[5] = (byte) (((packetLen & 0x07) << 5) | ((kBufferFullness & 0x07C0) >> 6));
+        packet[6] = (byte) (((kBufferFullness & 0x03F) << 2) | kFrameCount);
     }
 
     public void stop() {

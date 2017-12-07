@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     private SharedPreferences.Editor mEditor;
 
     private LocalMediaNode mLocalMediaNode;
-    private CloudMedia mCloudMedia;//= new CloudMedia(this, "ABCD");
+    private CloudMedia mCloudMedia;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -221,6 +221,12 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mCloudMedia.putOffline(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
+            @Override
+            public boolean onResult(String s) {
+                return false;
+            }
+        });
     }
 
     private void onAlertDialog() {

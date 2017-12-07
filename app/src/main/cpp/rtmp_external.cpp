@@ -29,12 +29,18 @@ int rtmp_push_scriptdata(rtmp_t rtmp, bool bHasVideo,
 
 int rtmp_push_video(rtmp_t rtmp,
                     char *framedata, int framesize, uint32_t dts, uint32_t pts) {
-    if (framedata[4] & 0x1F == 7) {// onMetadata
-        int width, height, fps, nSPSsize;
-        nSPSsize = h264_get_sps(framedata, framesize);
-        h264_decode_sps((unsigned char *)framedata, nSPSsize, width, height, fps);
-        rtmp_push_scriptdata((srs_rtmp_t *) rtmp, true, width, height, 0, fps, false, 0, 0);
-    }
+//    static bool once = false;
+//    if ((framedata[4] & 0x1F == 7) && !once) {// onMetadata
+//        int width, height, fps, nSPSsize;
+//        once = true;
+//        nSPSsize = h264_get_sps(framedata, framesize);
+//        h264_decode_sps((unsigned char *)framedata, nSPSsize, width, height, fps);
+//        rtmp_push_scriptdata((srs_rtmp_t *) rtmp, true, width, height, 0, 20, false, 0, 0);
+//    }
+//    if(!once){
+//        once = true;
+//        rtmp_push_scriptdata((srs_rtmp_t *) rtmp, true, 640, 480, 0, 20, false, 0, 0);
+//    }
     return srs_h264_write_raw_frames((srs_rtmp_t *) rtmp, framedata,
                                      framesize, dts, pts);
 }
@@ -52,4 +58,3 @@ void rtmp_stop(rtmp_t rtmp) {
         srs_rtmp_destroy((srs_rtmp_t *) rtmp);
     }
 }
-
