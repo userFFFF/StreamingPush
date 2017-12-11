@@ -24,6 +24,6 @@ public class Config {
     public static final int MEDIA_TYPE_AUDIO = 0x00;
     public static final int MEDIA_TYPE_VIDEO = 0x01;
 
-    public static final boolean DumpOutput = true;
+    public static final boolean DumpOutput = false;
 
 }

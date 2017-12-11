@@ -157,7 +157,8 @@ public class VideoCodec {
                     outputBuffer.get(output);
                     long timestamp = System.currentTimeMillis();
                     Log.d(TAG, "output.length = " + output.length);
-                    mRtmpLive.StreamPusher(output, output.length, timestamp, Config.MEDIA_TYPE_VIDEO);
+                    int ret = mRtmpLive.StreamPusher(output, output.length, timestamp, Config.MEDIA_TYPE_VIDEO);
+                    Log.d(TAG, "Video ret : " + ret);
                     if (Config.DumpOutput) {
                         Utils.dumpOutputBuffer(output, 0, output.length, mDumpOutputPath, true);
                     }

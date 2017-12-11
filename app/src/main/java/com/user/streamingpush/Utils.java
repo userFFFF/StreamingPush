@@ -152,7 +152,6 @@ public class Utils {
                                int mYPadding, boolean mPlanar, boolean mPanesReversed) {
         byte[] result = convert(data, width, height, mYPadding, mPlanar, mPanesReversed);
         int min = buffer.capacity() < data.length ? buffer.capacity() : data.length;
-        Log.d("Utils", "min = " + min);
         buffer.put(result, 0, min);
     }
 

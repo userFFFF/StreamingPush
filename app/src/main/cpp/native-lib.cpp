@@ -18,6 +18,7 @@ extern "C" {
 static JavaVM *JavaVM_t;
 static pthread_key_t jni_env_key;
 static jobject mCallBack_Obj = NULL;
+static pthread_mutex_t pushlock;
 
 JNIEnv *RtmpLive_JNI_getEnv(const char *name);
 
@@ -99,7 +100,7 @@ Java_com_user_streamingpush_RtmpLive_Init(
         LOGE("Create RTMP Handle ERROR");
         return NULL;
     }
-
+    pthread_mutex_init(&pushlock, NULL);
     int ret = rtmp_connect((rtmp_t *) rtmpHandle_t);
     RtmpLive_Callback(ret);
     env->ReleaseStringUTFChars(url, pUrl);
@@ -121,6 +122,7 @@ Java_com_user_streamingpush_RtmpLive_PushStreaming(
         return rtmp_stream_size_error;
     }
 
+    pthread_mutex_lock(&pushlock);
     jbyte *pbuffer = (jbyte *) env->GetByteArrayElements(dataArray, 0);
     int ret;
     if (type == 0x00) {
@@ -131,8 +133,8 @@ Java_com_user_streamingpush_RtmpLive_PushStreaming(
         RtmpLive_Callback(rtmp_stream_unsupport);
         LOGE("Stream UNSupport");
     }
-
     env->ReleaseByteArrayElements(dataArray, pbuffer, 0);
+    pthread_mutex_unlock(&pushlock);
     return ret;
 }
 
@@ -144,7 +146,7 @@ Java_com_user_streamingpush_RtmpLive_Stop(
         LOGE("RTMP Handle ERROR");
         return;
     }
-
+    pthread_mutex_destroy(&pushlock);
     rtmp_stop((rtmp_t *) pushObj);
     RtmpLive_Callback(rtmp_stopped);
 }

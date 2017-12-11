@@ -11,8 +11,9 @@ public class RtmpLive {
     private long mPusherObj;
 
     public interface onStreamingCallback {
-        public void onCallbak(int code);
-        static class CODE {
+        void onCallbak(int code);
+
+        class CODE {
             public static final int RTMP_STREAM_SIZE_ERR = -7;
             public static final int RTMP_HANDLER_ERR = -6;
             public static final int RTMP_STREAM_UNSUPPORT = -5;
