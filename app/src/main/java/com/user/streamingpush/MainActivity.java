@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     private String mLoginNickName;
 
     private boolean mOnline = false;
+    private boolean mIsPushing = false;
 
     private SharedPreferences mSharedPre;
     private SharedPreferences.Editor mEditor;
@@ -81,26 +82,24 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                         });
                     }
                 }
-                //mEditor.putString(Config.SERVER_URL, mRtmpUrl);
-                //mEditor.commit();
-                //Log.i(TAG, "rtmp URL" + mRtmpUrl);
-                //startActivity(new Intent(MainActivity.this, CameraActivity.class));
             }
         });
         mLogoutBtn = findViewById(R.id.Btn_logout);
         mLogoutBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCloudMedia.putOffline(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
-                    @Override
-                    public boolean onResult(String s) {
-                        Log.d(TAG, "Off Line");
-                        mOnline = false;
-                        mLoginBtn.setEnabled(true);
-                        mLogoutBtn.setEnabled(false);
-                        return true;
-                    }
-                });
+                if (mCloudMedia != null) {
+                    mCloudMedia.putOffline(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
+                        @Override
+                        public boolean onResult(String s) {
+                            Log.d(TAG, "Off Line");
+                            mOnline = false;
+                            mLoginBtn.setEnabled(true);
+                            mLogoutBtn.setEnabled(false);
+                            return true;
+                        }
+                    });
+                }
             }
         });
     }
@@ -125,6 +124,9 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             @Override
             public boolean onStartPushMedia(String params) {
                 Log.d(TAG, "onStartPushMedia params: " + params);
+                if (mIsPushing == true) {
+                    return true;
+                }
                 if (params == null) {
                     Toast.makeText(getApplicationContext(), "params is NULL!", Toast.LENGTH_SHORT);
                     return false;
@@ -144,8 +146,9 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 mEditor.putString(Config.SERVER_URL, mRtmpUrl);
                 mEditor.commit();
 
-                onAlertDialog();
-                //startActivity(new Intent(MainActivity.this, CameraActivity.class));
+                //onAlertDialog();
+                startActivity(new Intent(MainActivity.this, CameraActivity.class));
+                mIsPushing = true;
                 return true;
             }
         });
@@ -153,9 +156,18 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             @Override
             public boolean onStopPushMedia(String params) {
                 Log.d(TAG, "onStopPushMedia");
+                getApplicationContext().sendBroadcast(new Intent("finish"));
+                mIsPushing = false;
                 return true;
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        Log.d(TAG, "onResume");
+        mIsPushing = false;
+        super.onResume();
     }
 
     private void onFPSSetChecked() {
@@ -221,12 +233,14 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mCloudMedia.putOffline(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
-            @Override
-            public boolean onResult(String s) {
-                return false;
-            }
-        });
+        if (mCloudMedia != null) {
+            mCloudMedia.putOffline(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
+                @Override
+                public boolean onResult(String s) {
+                    return false;
+                }
+            });
+        }
     }
 
     private void onAlertDialog() {

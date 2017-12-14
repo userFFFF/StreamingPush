@@ -5,6 +5,10 @@ package com.user.streamingpush;
  */
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
@@ -62,10 +66,15 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("finish");
+        registerReceiver(mFinishReceiver, filter);
+
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_camera);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         mSharedPre = getSharedPreferences(Config.NAME, Activity.MODE_PRIVATE);
         mEditor = mSharedPre.edit();
@@ -138,6 +147,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
 
     protected void onDestroy() {
         super.onDestroy();
+        unregisterReceiver(mFinishReceiver);
         destroyCamera();
         mAudioStream.stop();
         mVideoCode.onDestroy();
@@ -369,4 +379,13 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         }
         return degrees;
     }
+
+    private BroadcastReceiver mFinishReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if ("finish".equals(intent.getAction())) {
+                finish();
+            }
+        }
+    };
 }
