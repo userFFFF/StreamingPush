@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
 
     private boolean mOnline = false;
     private boolean mIsPushing = false;
+    private int nRef = 0;
 
     private SharedPreferences mSharedPre;
     private SharedPreferences.Editor mEditor;
@@ -123,7 +124,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         mLocalMediaNode.setOnStartPushMediaActor(new LocalMediaNode.OnStartPushMedia() {
             @Override
             public boolean onStartPushMedia(String params) {
-                Log.d(TAG, "onStartPushMedia params: " + params);
+                nRef++;
+                Log.d(TAG, "onStartPushMedia nRef: " + nRef + ", params:" + nRef);
                 if (mIsPushing == true) {
                     return true;
                 }
@@ -148,6 +150,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
 
                 //onAlertDialog();
                 startActivity(new Intent(MainActivity.this, CameraActivity.class));
+
                 mIsPushing = true;
                 return true;
             }
@@ -155,9 +158,12 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         mLocalMediaNode.setOnStopPushMediaActor(new LocalMediaNode.OnStopPushMedia() {
             @Override
             public boolean onStopPushMedia(String params) {
-                Log.d(TAG, "onStopPushMedia");
-                getApplicationContext().sendBroadcast(new Intent("finish"));
-                mIsPushing = false;
+                nRef--;
+                Log.d(TAG, "onStopPushMedia nRef: " + nRef);
+                if (nRef == 0) {
+                    getApplicationContext().sendBroadcast(new Intent("finish"));
+                    mIsPushing = false;
+                }
                 return true;
             }
         });
@@ -167,6 +173,16 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     protected void onResume() {
         Log.d(TAG, "onResume");
         mIsPushing = false;
+        nRef = 0;
+        if (mCloudMedia != null) {
+            mCloudMedia.updateMyStatus(CloudMedia.CMStatus.UNKNOWN, new CloudMedia.SimpleActionListener() {
+                @Override
+                public boolean onResult(String s) {
+                    Log.i(TAG, "updateMyStatus - CMStatus.PUSHING");
+                    return true;
+                }
+            });
+        }
         super.onResume();
     }
 
@@ -252,13 +268,6 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         startActivity(new Intent(MainActivity.this, CameraActivity.class));
-                        mCloudMedia.updateMyStatus(CloudMedia.CMStatus.PUSHING, new CloudMedia.SimpleActionListener() {
-                            @Override
-                            public boolean onResult(String s) {
-                                Log.i(TAG, "updateMyStatus - CMStatus.PUSHING");
-                                return true;
-                            }
-                        });
                     }
                 });
         dialog.setNegativeButton(R.string.txt_reject,

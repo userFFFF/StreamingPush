@@ -133,7 +133,7 @@ public class AudioStream {
                             e.printStackTrace();
                         }
                     }
-                    ;
+
                     if (mAudioRecord != null) {
                         mAudioRecord.stop();
                         mAudioRecord.release();
