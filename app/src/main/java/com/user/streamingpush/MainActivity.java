@@ -53,11 +53,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         mRadioGroup_FPS.setOnCheckedChangeListener(this);
         mSharedPre = getSharedPreferences(Config.NAME, Activity.MODE_PRIVATE);
         mEditor = mSharedPre.edit();
-        //mCloudMedia = new CloudMedia(this, "USER0");
         onResolutionChecked();
         onFPSSetChecked();
-        //String mURL = mSharedPre.getString(Config.SERVER_URL, "rtmp://192.168.199.56:1935/live/livestream");
-        //mEditText.setText(mURL);
 
         mLoginBtn = findViewById(R.id.Btn_login);
         mLoginBtn.setOnClickListener(new View.OnClickListener() {
@@ -72,13 +69,18 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                         mCloudMedia = new CloudMedia(getApplicationContext());
                         onCloudMediaUpdate();
                     } else {
-                        mCloudMedia.putOnline(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
+                        mCloudMedia.connect(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.RPCResultListener() {
                             @Override
-                            public boolean onResult(String s) {
+                            public void onSuccess(String s) {
                                 mOnline = true;
                                 mLoginBtn.setEnabled(false);
                                 mLogoutBtn.setEnabled(true);
-                                return true;
+                                Log.d(TAG, "connect onSuccess");
+                            }
+
+                            @Override
+                            public void onFailure(String s) {
+                                Log.d(TAG, "connect onFailure");
                             }
                         });
                     }
@@ -90,33 +92,30 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             @Override
             public void onClick(View v) {
                 if (mCloudMedia != null) {
-                    mCloudMedia.putOffline(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
-                        @Override
-                        public boolean onResult(String s) {
-                            Log.d(TAG, "Off Line");
-                            mOnline = false;
-                            mLoginBtn.setEnabled(true);
-                            mLogoutBtn.setEnabled(false);
-                            return true;
-                        }
-                    });
+                    mCloudMedia.disconnect();
+                    mCloudMedia = null;
+
+                    mOnline = false;
+                    mLoginBtn.setEnabled(true);
+                    mLogoutBtn.setEnabled(false);
                 }
             }
         });
     }
 
     private void onCloudMediaUpdate() {
-        mCloudMedia.connect(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.FullActionListener() {
+        mCloudMedia.connect(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.RPCResultListener() {
             @Override
             public void onSuccess(String s) {
                 mOnline = true;
                 mLoginBtn.setEnabled(false);
                 mLogoutBtn.setEnabled(true);
+                Log.i(TAG, "connect onSuccess");
             }
 
             @Override
             public void onFailure(String s) {
-                Log.e(TAG, "connect onFailure");
+                Log.i(TAG, "connect onFailure");
             }
         });
 
@@ -148,10 +147,20 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 mEditor.putString(Config.SERVER_URL, mRtmpUrl);
                 mEditor.commit();
 
-                //onAlertDialog();
                 startActivity(new Intent(MainActivity.this, CameraActivity.class));
 
                 mIsPushing = true;
+                mCloudMedia.updateStreamStatus(CloudMedia.CMStreamStatus.PUSHING, new CloudMedia.RPCResultListener() {
+                    @Override
+                    public void onSuccess(String s) {
+                        Log.d(TAG, "updateStreamStatus onSuccess");
+                    }
+
+                    @Override
+                    public void onFailure(String s) {
+                        Log.d(TAG, "updateStreamStatus onFailure");
+                    }
+                });
                 return true;
             }
         });
@@ -175,11 +184,15 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         mIsPushing = false;
         nRef = 0;
         if (mCloudMedia != null) {
-            mCloudMedia.updateMyStatus(CloudMedia.CMStatus.UNKNOWN, new CloudMedia.SimpleActionListener() {
+            mCloudMedia.updateStreamStatus(CloudMedia.CMStreamStatus.PUSHING_CLOSE, new CloudMedia.RPCResultListener() {
                 @Override
-                public boolean onResult(String s) {
-                    Log.i(TAG, "updateMyStatus - CMStatus.PUSHING");
-                    return true;
+                public void onSuccess(String s) {
+                    Log.d(TAG, "updateStreamStatus onSuccess");
+                }
+
+                @Override
+                public void onFailure(String s) {
+                    Log.d(TAG, "updateStreamStatus onFailure");
                 }
             });
         }
@@ -250,35 +263,12 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     protected void onDestroy() {
         super.onDestroy();
         if (mCloudMedia != null) {
-            mCloudMedia.putOffline(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.SimpleActionListener() {
-                @Override
-                public boolean onResult(String s) {
-                    return false;
-                }
-            });
+            mCloudMedia.disconnect();
+
+            mOnline = false;
+            mLoginBtn.setEnabled(true);
+            mLogoutBtn.setEnabled(false);
         }
-    }
-
-    private void onAlertDialog() {
-        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-        dialog.setMessage(R.string.txt_acceptlive);
-        dialog.setPositiveButton(R.string.txt_accept,
-                new DialogInterface.OnClickListener() {
-
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        startActivity(new Intent(MainActivity.this, CameraActivity.class));
-                    }
-                });
-        dialog.setNegativeButton(R.string.txt_reject,
-                new DialogInterface.OnClickListener() {
-
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-        dialog.show();
     }
 
     @Override

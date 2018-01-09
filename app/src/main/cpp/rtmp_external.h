@@ -20,6 +20,7 @@ typedef void* rtmp_t;
 #define rtmp_stream_unsupport    -5
 #define rtmp_handle_error        -6
 #define rtmp_stream_size_error   -7
+#define rtmp_socket_error        1019
 
 /**
 * rtmp_create:

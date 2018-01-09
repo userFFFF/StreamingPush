@@ -110,7 +110,8 @@ Java_com_user_streamingpush_RtmpLive_Init(
 
 JNIEXPORT jint JNICALL
 Java_com_user_streamingpush_RtmpLive_PushStreaming(
-        JNIEnv *env, jobject /* this */, jlong pushObj, jbyteArray dataArray, jint size, jlong timestamp, jint type) {
+        JNIEnv *env, jobject /* this */, jlong pushObj, jbyteArray dataArray, jint size,
+        jlong timestamp, jint type) {
     //LOGI("RtmpLive_PushStreaming");
     if (!pushObj) {
         LOGE("RTMP Handle ERROR");
@@ -135,6 +136,9 @@ Java_com_user_streamingpush_RtmpLive_PushStreaming(
     }
     env->ReleaseByteArrayElements(dataArray, pbuffer, 0);
     pthread_mutex_unlock(&pushlock);
+    if (ret != 0) {
+        RtmpLive_Callback(rtmp_socket_error);
+    }
     return ret;
 }
 

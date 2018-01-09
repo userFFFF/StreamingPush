@@ -24,6 +24,7 @@ public class RtmpLive {
             public static final int RTMP_STATE_SUCCESS = 0;
             public static final int RTMP_STATE_CONNECTED = 1;
             public static final int RTMP_STATE_STOPED = 2;
+            public static final int RTMP_SOCKET_ERROR = 1019;
         }
     }
 

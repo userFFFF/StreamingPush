@@ -67,7 +67,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        IntentFilter filter = new IntentFilter();
+        final IntentFilter filter = new IntentFilter();
         filter.addAction("finish");
         registerReceiver(mFinishReceiver, filter);
 
@@ -103,6 +103,9 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
                     case CODE.RTMP_STATE_CONNECTED:
                     case CODE.RTMP_STATE_STOPED:
                         break;
+                    //case CODE.RTMP_SOCKET_ERROR:
+                    //    finish();
+                    //    break;
                 }
                 Log.d(TAG, "code = " + code);
             }
