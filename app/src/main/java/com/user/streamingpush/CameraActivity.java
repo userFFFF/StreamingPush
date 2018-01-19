@@ -238,7 +238,8 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
                 mCamera = Camera.open();    // opens first back-facing camera
             }
             if (mCamera == null) {
-                throw new RuntimeException("Unable to open camera");
+                Log.e(TAG, "mCameraNum is NULL");
+                return false;
             }
             Camera.Parameters mCameraParamters = mCamera.getParameters();
             int[] max = determineMaximumSupportedFramerate(mCameraParamters);
@@ -271,7 +272,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
             mCameraParamters.setPreviewSize(mWidth, mHeight);
             mCameraParamters.setPreviewFpsRange(max[0], max[1]);
             mCamera.setParameters(mCameraParamters);
-            mCamera.autoFocus(null);
+            //mCamera.autoFocus(null);
             int displayRotation = (cameraRotationOffset - getDegree() + 360) % 360;
             mCamera.setDisplayOrientation(displayRotation);
             mCamera.setPreviewTexture(surface);

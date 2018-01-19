@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             @Override
             public void onClick(View v) {
                 mLoginNickName = mEditText.getText().toString();
-                if (mLoginNickName == null) {
+                if (mLoginNickName == null || mLoginNickName.length() == 0) {
                     mLoginNickName = "USER0";
                 }
                 if (mOnline == false) {
