@@ -238,7 +238,8 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
                 mCamera = Camera.open();    // opens first back-facing camera
             }
             if (mCamera == null) {
-                Log.e(TAG, "mCameraNum is NULL");
+                Log.e(TAG, "mCamera service is NULL");
+                Toast.makeText(this, "Camera permission is NOT ALLOWED", Toast.LENGTH_SHORT);
                 return false;
             }
             Camera.Parameters mCameraParamters = mCamera.getParameters();
