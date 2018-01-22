@@ -2,9 +2,16 @@ package com.user.streamingpush;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiManager;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,7 +39,6 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
 
     private boolean mOnline = false;
     private boolean mIsPushing = false;
-    private int nRef = 0;
 
     private SharedPreferences mSharedPre;
     private SharedPreferences.Editor mEditor;
@@ -44,6 +50,12 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        final IntentFilter filter = new IntentFilter();
+        filter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+        filter.addAction("android.net.wifi.WIFI_STATE_CHANGED");
+        filter.addAction("android.net.wifi.STATE_CHANGE");
+        registerReceiver(mNetworkConnectChangedReceiver, filter);
 
         // Example of a call to a native method
         mEditText = findViewById(R.id.EditTxt_URL);
@@ -81,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                             @Override
                             public void onFailure(String s) {
                                 Log.d(TAG, "connect onFailure");
+                                Toast.makeText(getApplicationContext(), "Login failure, please checked the network.", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
@@ -116,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             @Override
             public void onFailure(String s) {
                 Log.i(TAG, "connect onFailure");
+                Toast.makeText(MainActivity.this, "Login failure, please checked the network.", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -123,13 +137,12 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         mLocalMediaNode.setOnStartPushMediaActor(new LocalMediaNode.OnStartPushMedia() {
             @Override
             public boolean onStartPushMedia(String params) {
-                nRef++;
-                Log.d(TAG, "onStartPushMedia nRef: " + nRef + ", params:" + nRef);
+                Log.d(TAG, "onStartPushMedia params: " + params);
                 if (mIsPushing == true) {
                     return true;
                 }
                 if (params == null) {
-                    Toast.makeText(getApplicationContext(), "params is NULL!", Toast.LENGTH_SHORT);
+                    Toast.makeText(getApplicationContext(), "params is NULL!", Toast.LENGTH_SHORT).show();
                     return false;
                 }
 
@@ -140,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                     e.printStackTrace();
                 }
                 if (mRtmpUrl == null) {
-                    Toast.makeText(getApplicationContext(), "RTMP Server IP is NULL!", Toast.LENGTH_SHORT);
+                    Toast.makeText(getApplicationContext(), "RTMP Server IP is NULL!", Toast.LENGTH_SHORT).show();
                     return false;
                 }
 
@@ -167,12 +180,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         mLocalMediaNode.setOnStopPushMediaActor(new LocalMediaNode.OnStopPushMedia() {
             @Override
             public boolean onStopPushMedia(String params) {
-                nRef--;
-                Log.d(TAG, "onStopPushMedia nRef: " + nRef);
-                if (nRef == 0) {
-                    getApplicationContext().sendBroadcast(new Intent("finish"));
-                    mIsPushing = false;
-                }
+                getApplicationContext().sendBroadcast(new Intent("finish"));
+                mIsPushing = false;
                 return true;
             }
         });
@@ -182,8 +191,22 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     protected void onResume() {
         Log.d(TAG, "onResume");
         mIsPushing = false;
-        nRef = 0;
         if (mCloudMedia != null) {
+            if (Config.RTMP_PUSH_STATE_ERROR == mSharedPre.getInt(Config.RTMP_STATE, Config.RTMP_PUSH_STATE_STOPPED)) {
+                mEditor.putInt(Config.RTMP_STATE, Config.RTMP_PUSH_STATE_STOPPED);
+                mEditor.commit();
+                mCloudMedia.updateStreamStatus(CloudMedia.CMStreamStatus.PUSHING_ERROR, new CloudMedia.RPCResultListener() {
+                    @Override
+                    public void onSuccess(String s) {
+                        Log.d(TAG, "updateStreamStatus onSuccess");
+                    }
+
+                    @Override
+                    public void onFailure(String s) {
+                        Log.d(TAG, "updateStreamStatus onFailure");
+                    }
+                });
+            }
             mCloudMedia.updateStreamStatus(CloudMedia.CMStreamStatus.PUSHING_CLOSE, new CloudMedia.RPCResultListener() {
                 @Override
                 public void onSuccess(String s) {
@@ -195,6 +218,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                     Log.d(TAG, "updateStreamStatus onFailure");
                 }
             });
+
         }
         super.onResume();
     }
@@ -205,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         RadioButton mRadio_20 = findViewById(R.id.Radio_20);
         RadioButton mRadio_25 = findViewById(R.id.Radio_25);
         RadioButton mRadio_30 = findViewById(R.id.Radio_30);
-        int mFPS = mSharedPre.getInt(Config.FPS, Config.PFS_10);
+        int mFPS = mSharedPre.getInt(Config.FPS, Config.PFS_20);
 
         switch (mFPS) {
             case Config.PFS_10:
@@ -269,6 +293,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             mLoginBtn.setEnabled(true);
             mLogoutBtn.setEnabled(false);
         }
+        unregisterReceiver(mNetworkConnectChangedReceiver);
     }
 
     @Override
@@ -335,4 +360,67 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 break;
         }
     }
+
+    private BroadcastReceiver mNetworkConnectChangedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(intent.getAction())) {
+                int wifiState = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, 0);
+                Log.d(TAG, "wifiState: " + wifiState);
+                switch (wifiState) {
+                    case WifiManager.WIFI_STATE_DISABLED:
+                        break;
+                    case WifiManager.WIFI_STATE_DISABLING:
+                        break;
+                    case WifiManager.WIFI_STATE_ENABLING:
+                        break;
+                    case WifiManager.WIFI_STATE_ENABLED:
+                        break;
+                    case WifiManager.WIFI_STATE_UNKNOWN:
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(intent.getAction())) {
+                Parcelable parcelableExtra = intent
+                        .getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+                if (null != parcelableExtra) {
+                    NetworkInfo networkInfo = (NetworkInfo) parcelableExtra;
+                    NetworkInfo.State state = networkInfo.getState();
+                    boolean isConnected = state == NetworkInfo.State.CONNECTED;// 当然，这边可以更精确的确定状态
+                    Log.e(TAG, "isConnected: " + isConnected);
+                    if (isConnected) {
+                    } else {
+                    }
+                }
+            }
+
+            if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {
+                ConnectivityManager manager = (ConnectivityManager) context
+                        .getSystemService(Context.CONNECTIVITY_SERVICE);
+                Log.i(TAG, "CONNECTIVITY_ACTION");
+
+                NetworkInfo activeNetwork = manager.getActiveNetworkInfo();
+                if (activeNetwork != null) { // connected to the internet
+                    if (activeNetwork.isConnected()) {
+                        if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI) {
+                            // connected to wifi
+                            Log.e(TAG, "当前WiFi连接可用 ");
+                        } else if (activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+                            // connected to the mobile provider's data plan
+                            Log.e(TAG, "当前移动网络连接可用 ");
+                        }
+                    } else {
+                        Log.e(TAG, "当前没有网络连接，请确保你已经打开网络 ");
+                        getApplicationContext().sendBroadcast(new Intent("finish"));
+                    }
+                } else {   // not connected to the internet
+                    getApplicationContext().sendBroadcast(new Intent("finish"));
+                    Log.e(TAG, "当前没有网络连接，请确保你已经打开网络 ");
+                }
+            }
+        }
+    };
 }

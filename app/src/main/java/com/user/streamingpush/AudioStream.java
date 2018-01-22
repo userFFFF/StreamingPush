@@ -179,10 +179,10 @@ public class AudioStream {
                     adts_write_frame_header(mBuffer.array(), mBufferInfo.size + ADTS_HEADER_SIZE, 0, MediaCodecInfo.CodecProfileLevel.AACObjectLC, 2);
                     mBuffer.flip();
                     long timestamp = System.currentTimeMillis();
-                    Log.d(TAG, "mBufferInfo.size: " + mBufferInfo.size);
-                    int ret = mRtmpLive.StreamPusher(mBuffer.array(), mBufferInfo.size + ADTS_HEADER_SIZE,
+                    //Log.d(TAG, "mBufferInfo.size: " + mBufferInfo.size);
+                    mRtmpLive.StreamPusher(mBuffer.array(), mBufferInfo.size + ADTS_HEADER_SIZE,
                             timestamp, Config.MEDIA_TYPE_AUDIO);
-                    Log.d(TAG, "Audio Push ret: " + ret);
+                    //Log.d(TAG, "Audio Push ret: " + ret);
                     if (Config.DumpOutput) {
                         Utils.dumpOutputBuffer(mBuffer.array(), 0, mBufferInfo.size + ADTS_HEADER_SIZE, mDumpOutputPath, true);
                     }

@@ -108,8 +108,8 @@ public class VideoCodec {
             Log.e(TAG, "The input buffer is NULL");
             return null;
         }
-        Log.d(TAG, "onPreviewFrameEncoding...");
-        Log.d(TAG, "input.length = " + input.length);
+        //Log.d(TAG, "onPreviewFrameEncoding...");
+        //Log.d(TAG, "input.length = " + input.length);
         ByteBuffer[] inputBuffers = mMediaCodec.getInputBuffers();
         ByteBuffer[] outputBuffers = mMediaCodec.getOutputBuffers();
         byte[] covertBuffer; //= new byte[input.length]; // DO NOT NEED NEW!!!
@@ -157,9 +157,9 @@ public class VideoCodec {
                     byte[] output = new byte[bufferInfo.size];
                     outputBuffer.get(output);
                     long timestamp = System.currentTimeMillis();
-                    Log.d(TAG, "output.length = " + output.length);
-                    int ret = mRtmpLive.StreamPusher(output, output.length, timestamp, Config.MEDIA_TYPE_VIDEO);
-                    Log.d(TAG, "Video ret : " + ret);
+                    //Log.d(TAG, "output.length = " + output.length);
+                    mRtmpLive.StreamPusher(output, output.length, timestamp, Config.MEDIA_TYPE_VIDEO);
+                    //Log.d(TAG, "Video ret : " + ret);
                     if (Config.DumpOutput) {
                         Utils.dumpOutputBuffer(output, 0, output.length, mDumpOutputPath, true);
                     }

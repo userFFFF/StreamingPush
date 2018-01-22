@@ -19,8 +19,9 @@ static JavaVM *JavaVM_t;
 static pthread_key_t jni_env_key;
 static jobject mCallBack_Obj = NULL;
 static pthread_mutex_t pushlock;
-
+static int nRef = 0;
 JNIEnv *RtmpLive_JNI_getEnv(const char *name);
+
 
 static void RtmpLive_JNI_Detachthread(void *data) {
     JavaVM_t->DetachCurrentThread();
@@ -136,9 +137,16 @@ Java_com_user_streamingpush_RtmpLive_PushStreaming(
     }
     env->ReleaseByteArrayElements(dataArray, pbuffer, 0);
     pthread_mutex_unlock(&pushlock);
+    if (ret == 0) {
+        nRef = 0;
+    }
     if (ret != 0) {
+        nRef++;
+    }
+    if (nRef == 10) {
         RtmpLive_Callback(rtmp_socket_error);
     }
+
     return ret;
 }
 

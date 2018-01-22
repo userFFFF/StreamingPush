@@ -91,6 +91,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         mRtmpLive.InitPusher(mURL, new RtmpLive.onStreamingCallback() {
             @Override
             public void onCallbak(int code) {
+                Log.d(TAG, "code = " + code);
                 switch (code) {
                     case CODE.RTMP_STREAM_SIZE_ERR:
                     case CODE.RTMP_HANDLER_ERR:
@@ -99,15 +100,24 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
                     case CODE.RTMP_CONNECT_ERR:
                     case CODE.RTMP_HANDSHAKE_ERR:
                     case CODE.RTMP_CREATE_ERR:
+                        //Toast.makeText(CameraActivity.this, "RTMP Create FIALED", Toast.LENGTH_SHORT).show();
+                        mEditor.putInt(Config.RTMP_STATE, Config.RTMP_PUSH_STATE_ERROR);
+                        mEditor.commit();
+                        getApplicationContext().sendBroadcast(new Intent("finish"));
+                        break;
                     case CODE.RTMP_STATE_SUCCESS:
                     case CODE.RTMP_STATE_CONNECTED:
-                    case CODE.RTMP_STATE_STOPED:
                         break;
-                    //case CODE.RTMP_SOCKET_ERROR:
-                    //    finish();
-                    //    break;
+                    case CODE.RTMP_STATE_STOPED:
+                        //Toast.makeText(CameraActivity.this, "RTMP STOPPED", Toast.LENGTH_SHORT).show();
+                        break;
+                    case CODE.RTMP_SOCKET_ERROR:
+                        //Toast.makeText(CameraActivity.this, "RTMP SOCKET ERROR", Toast.LENGTH_SHORT).show();
+                        mEditor.putInt(Config.RTMP_STATE, Config.RTMP_PUSH_STATE_ERROR);
+                        mEditor.commit();
+                        getApplicationContext().sendBroadcast(new Intent("finish"));
+                        break;
                 }
-                Log.d(TAG, "code = " + code);
             }
         });
 

@@ -9,6 +9,7 @@ public class Config {
     public static final String SERVER_URL = "serverurl";
     public static final String RESOLUTION = "resolution";
     public static final String FPS = "fps";
+    public static final String RTMP_STATE = "rtmp_state";
     public static final int PFS_10 = 10;
     public static final int PFS_15 = 15;
     public static final int PFS_20 = 20;
@@ -23,6 +24,9 @@ public class Config {
 
     public static final int MEDIA_TYPE_AUDIO = 0x00;
     public static final int MEDIA_TYPE_VIDEO = 0x01;
+
+    public static final int RTMP_PUSH_STATE_ERROR = 0x00;
+    public static final int RTMP_PUSH_STATE_STOPPED = 0x01;
 
     public static final boolean DumpOutput = false;
 
