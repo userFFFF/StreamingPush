@@ -100,7 +100,6 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
                     case CODE.RTMP_CONNECT_ERR:
                     case CODE.RTMP_HANDSHAKE_ERR:
                     case CODE.RTMP_CREATE_ERR:
-                        //Toast.makeText(CameraActivity.this, "RTMP Create FIALED", Toast.LENGTH_SHORT).show();
                         mEditor.putInt(Config.RTMP_STATE, Config.RTMP_PUSH_STATE_ERROR);
                         mEditor.commit();
                         getApplicationContext().sendBroadcast(new Intent("finish"));
@@ -109,10 +108,8 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
                     case CODE.RTMP_STATE_CONNECTED:
                         break;
                     case CODE.RTMP_STATE_STOPED:
-                        //Toast.makeText(CameraActivity.this, "RTMP STOPPED", Toast.LENGTH_SHORT).show();
                         break;
                     case CODE.RTMP_SOCKET_ERROR:
-                        //Toast.makeText(CameraActivity.this, "RTMP SOCKET ERROR", Toast.LENGTH_SHORT).show();
                         mEditor.putInt(Config.RTMP_STATE, Config.RTMP_PUSH_STATE_ERROR);
                         mEditor.commit();
                         getApplicationContext().sendBroadcast(new Intent("finish"));

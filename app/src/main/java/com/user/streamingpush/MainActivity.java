@@ -258,7 +258,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         RadioButton mRadio_640P = findViewById(R.id.Radio_640P);
         RadioButton mRadio_720P = findViewById(R.id.Radio_720P);
         RadioButton mRadio_1080P = findViewById(R.id.Radio_1080P);
-        int mResolution = mSharedPre.getInt(Config.RESOLUTION, Config.Resolution_240P);
+        int mResolution = mSharedPre.getInt(Config.RESOLUTION, Config.Resolution_480P);
 
         switch (mResolution) {
             case Config.Resolution_240P:
