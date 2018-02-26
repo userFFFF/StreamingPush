@@ -1,10 +1,8 @@
 package com.user.streamingpush;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -22,8 +20,8 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import com.example.cloudmedia.CloudMedia;
-import com.example.cloudmedia.LocalMediaNode;
+import com.cmteam.cloudmedia.PushNode;
+import com.cmteam.cloudmedia.CloudMedia;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,8 +41,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     private SharedPreferences mSharedPre;
     private SharedPreferences.Editor mEditor;
 
-    private LocalMediaNode mLocalMediaNode;
-    private CloudMedia mCloudMedia;
+    private PushNode mPushNode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,26 +74,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                     mLoginNickName = "USER0";
                 }
                 if (mOnline == false) {
-                    if (mCloudMedia == null) {
-                        mCloudMedia = new CloudMedia(getApplicationContext());
-                        onCloudMediaUpdate();
-                    } else {
-                        mCloudMedia.connect(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.RPCResultListener() {
-                            @Override
-                            public void onSuccess(String s) {
-                                mOnline = true;
-                                mLoginBtn.setEnabled(false);
-                                mLogoutBtn.setEnabled(true);
-                                Log.d(TAG, "connect onSuccess");
-                            }
-
-                            @Override
-                            public void onFailure(String s) {
-                                Log.d(TAG, "connect onFailure");
-                                Toast.makeText(getApplicationContext(), "Login failure, please checked the network.", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
+                    connectCloudMedia();
                 }
             }
         });
@@ -104,9 +82,9 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         mLogoutBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mCloudMedia != null) {
-                    mCloudMedia.disconnect();
-                    mCloudMedia = null;
+                if (mPushNode != null) {
+                    mPushNode.disconnect();
+                    mPushNode = null;
 
                     mOnline = false;
                     mLoginBtn.setEnabled(true);
@@ -116,27 +94,14 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         });
     }
 
-    private void onCloudMediaUpdate() {
-        mCloudMedia.connect(mLoginNickName, CloudMedia.CMRole.ROLE_PUSHER, new CloudMedia.RPCResultListener() {
-            @Override
-            public void onSuccess(String s) {
-                mOnline = true;
-                mLoginBtn.setEnabled(false);
-                mLogoutBtn.setEnabled(true);
-                Log.i(TAG, "connect onSuccess");
-            }
-
-            @Override
-            public void onFailure(String s) {
-                Log.i(TAG, "connect onFailure");
-                Toast.makeText(MainActivity.this, "Login failure, please checked the network.", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        mLocalMediaNode = mCloudMedia.declareLocalMediaNode();
-        mLocalMediaNode.setOnStartPushMediaActor(new LocalMediaNode.OnStartPushMedia() {
+    private void connectCloudMedia() {
+        if(mPushNode == null) {
+            mPushNode = CloudMedia.declarePushNode(getApplicationContext(), mLoginNickName, "default");
+        }
+        mPushNode.setOnStartPushMediaActor(new PushNode.OnStartPushMedia() {
             @Override
             public boolean onStartPushMedia(String params) {
+
                 Log.d(TAG, "onStartPushMedia params: " + params);
                 if (mIsPushing == true) {
                     return true;
@@ -163,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 startActivity(new Intent(MainActivity.this, CameraActivity.class));
 
                 mIsPushing = true;
-                mCloudMedia.updateStreamStatus(CloudMedia.CMStreamStatus.PUSHING, new CloudMedia.RPCResultListener() {
+                mPushNode.updateStreamStatus(CloudMedia.CMStreamStatus.PUSHING, new CloudMedia.RPCResultListener() {
                     @Override
                     public void onSuccess(String s) {
                         Log.d(TAG, "updateStreamStatus onSuccess");
@@ -177,12 +142,34 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 return true;
             }
         });
-        mLocalMediaNode.setOnStopPushMediaActor(new LocalMediaNode.OnStopPushMedia() {
+        mPushNode.setOnStopPushMediaActor(new PushNode.OnStopPushMedia() {
             @Override
-            public boolean onStopPushMedia(String params) {
+            public boolean onStopPushMedia(String s) {
                 getApplicationContext().sendBroadcast(new Intent("finish"));
                 mIsPushing = false;
                 return true;
+            }
+        });
+        mPushNode.connect("", "", "g123", "gn", "v123", "vn", new CloudMedia.RPCResultListener() {
+            @Override
+            public void onSuccess(String s) {
+                mOnline = true;
+                mLoginBtn.setEnabled(false);
+                mLogoutBtn.setEnabled(true);
+                Log.d(TAG, "connect onSuccess");
+                mPushNode.setMessageListener(new CloudMedia.OnMessageListener() {
+                    @Override
+                    public void onMessage(String s, String s1, String s2) {
+                        Log.d(TAG, "onMessage:s = "+s+", s1 = "+s1+", s2 ="+s2);
+                        mPushNode.sendMessage(s, s1, "pusher: receied");
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(String s) {
+                Log.d(TAG, "connect onFailure");
+                Toast.makeText(getApplicationContext(), "Login failure, please checked the network.", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -191,11 +178,11 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     protected void onResume() {
         Log.d(TAG, "onResume");
         mIsPushing = false;
-        if (mCloudMedia != null) {
+        if (mPushNode != null) {
             if (Config.RTMP_PUSH_STATE_ERROR == mSharedPre.getInt(Config.RTMP_STATE, Config.RTMP_PUSH_STATE_STOPPED)) {
                 mEditor.putInt(Config.RTMP_STATE, Config.RTMP_PUSH_STATE_STOPPED);
                 mEditor.commit();
-                mCloudMedia.updateStreamStatus(CloudMedia.CMStreamStatus.PUSHING_ERROR, new CloudMedia.RPCResultListener() {
+                mPushNode.updateStreamStatus(CloudMedia.CMStreamStatus.PUSHING_ERROR, new CloudMedia.RPCResultListener() {
                     @Override
                     public void onSuccess(String s) {
                         Log.d(TAG, "updateStreamStatus onSuccess");
@@ -207,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                     }
                 });
             }
-            mCloudMedia.updateStreamStatus(CloudMedia.CMStreamStatus.PUSHING_CLOSE, new CloudMedia.RPCResultListener() {
+            mPushNode.updateStreamStatus(CloudMedia.CMStreamStatus.PUSHING_CLOSE, new CloudMedia.RPCResultListener() {
                 @Override
                 public void onSuccess(String s) {
                     Log.d(TAG, "updateStreamStatus onSuccess");
@@ -286,8 +273,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mCloudMedia != null) {
-            mCloudMedia.disconnect();
+        if (mPushNode != null) {
+            mPushNode.disconnect();
 
             mOnline = false;
             mLoginBtn.setEnabled(true);
