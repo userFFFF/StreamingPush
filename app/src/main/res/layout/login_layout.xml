@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="450dp"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    >
+    <EditText
+        android:id="@+id/EditTxt_name"
+        style="@style/CustomEdit"
+        android:hint="@string/user_hint"
+        android:textColorHint="@color/colorhint"/>
+
+    <EditText
+        android:id="@+id/EditTxt_psw"
+        style="@style/CustomEdit"
+        android:hint="@string/psw_hint"
+        android:textColorHint="@color/colorhint"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="35dp"
+        android:layout_gravity="center_horizontal">
+
+        <RadioGroup
+            android:id="@+id/RadioGroup_Solution"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/Txt_Solution"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/txt_Reslt"
+                android:textColor="@color/color_radio_text"
+                android:textSize="@dimen/default_text_size"/>
+
+            <RadioButton
+                android:id="@+id/Radio_240P"
+                style="@style/CustomRadioButton"
+                android:text="240P"
+                android:visibility="gone"/>
+
+            <RadioButton
+                android:id="@+id/Radio_320P"
+                style="@style/CustomRadioButton"
+                android:text="320P"/>
+
+            <RadioButton
+                android:id="@+id/Radio_480P"
+                style="@style/CustomRadioButton"
+                android:checked="true"
+                android:text="480P"/>
+
+            <RadioButton
+                android:id="@+id/Radio_640P"
+                style="@style/CustomRadioButton"
+                android:text="640P"/>
+
+            <RadioButton
+                android:id="@+id/Radio_720P"
+                style="@style/CustomRadioButton"
+                android:text="720P"/>
+
+            <RadioButton
+                android:id="@+id/Radio_1080P"
+                style="@style/CustomRadioButton"
+                android:text="1080P"
+                android:visibility="gone" />
+        </RadioGroup>
+
+        <RadioGroup
+            android:id="@+id/RadioGroup_FPS"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginLeft="91dp">
+
+            <TextView
+                android:id="@+id/Txt_fps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/txt_Fps"
+                android:textColor="@color/color_radio_text"
+                android:textSize="@dimen/default_text_size"/>
+
+            <RadioButton
+                android:id="@+id/Radio_10"
+                style="@style/CustomRadioButton"
+                android:text="10 fps"
+                android:visibility="gone"/>
+
+            <RadioButton
+                android:id="@+id/Radio_15"
+                style="@style/CustomRadioButton"
+                android:checked="true"
+                android:text="15 fps"/>
+
+            <RadioButton
+                android:id="@+id/Radio_20"
+                style="@style/CustomRadioButton"
+                android:text="20 fps" />
+
+            <RadioButton
+                android:id="@+id/Radio_25"
+                style="@style/CustomRadioButton"
+                android:text="25 fps" />
+
+            <RadioButton
+                android:id="@+id/Radio_30"
+                style="@style/CustomRadioButton"
+                android:text="30 fps" />
+        </RadioGroup>
+    </LinearLayout>
+
+</LinearLayout>

@@ -2,132 +2,56 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/colormainback">
 
-
-    <TextView
-        android:id="@+id/txt_Addr"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/txt_NickName"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
-
-    <EditText
-        android:id="@+id/EditTxt_URL"
+    <RelativeLayout
+        android:id="@+id/titlebar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="nickname"
-        android:inputType="textMultiLine" />
+        android:layout_height="86dp"
+        android:background="@color/colortitlebar"
+        android:fitsSystemWindows="true"
+        >
+        <TextView
+            android:id="@+id/titletx"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="20dp"
+            android:textColor="@android:color/white"
+            android:textSize="19sp"
+            android:text="推端设备"/>
+    </RelativeLayout>
 
+    <include android:id="@+id/login"
+        layout="@layout/login_layout"
+        android:layout_width="match_parent"
+        android:layout_height="420dp"
+        android:layout_marginTop="8dp"></include>
+
+    <include android:id="@+id/logined"
+        layout="@layout/logined_layout"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"></include>
+
+
+    <Button
+        android:id="@+id/signinbtn"
+        android:layout_width="@dimen/login_edit_width"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="@string/signin_btn"
+        android:textSize="@dimen/default_text_size"
+        android:textColor="@android:color/white"
+        android:background="@drawable/signinbtnbg"
+        android:layout_gravity="center_horizontal"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="horizontal">
-
-        <RadioGroup
-            android:id="@+id/RadioGroup_Solution"
-            android:layout_width="175dp"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/Txt_Solution"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/txt_Reslt"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
-
-            <RadioButton
-                android:id="@+id/Radio_240P"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="240P" />
-
-            <RadioButton
-                android:id="@+id/Radio_320P"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="320P" />
-
-            <RadioButton
-                android:id="@+id/Radio_480P"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="480P" />
-
-            <RadioButton
-                android:id="@+id/Radio_640P"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="640P" />
-
-            <RadioButton
-                android:id="@+id/Radio_720P"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="720P" />
-
-            <RadioButton
-                android:id="@+id/Radio_1080P"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="1080P"
-                android:visibility="invisible" />
-        </RadioGroup>
-
-        <RadioGroup
-            android:id="@+id/RadioGroup_FPS"
-            android:layout_width="175dp"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/Txt_fps"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/txt_Fps"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
-
-            <RadioButton
-                android:id="@+id/Radio_10"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="10 fps" />
-
-            <RadioButton
-                android:id="@+id/Radio_15"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="15 fps" />
-
-            <RadioButton
-                android:id="@+id/Radio_20"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="20 fps" />
-
-            <RadioButton
-                android:id="@+id/Radio_25"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="25 fps" />
-
-            <RadioButton
-                android:id="@+id/Radio_30"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="30 fps" />
-        </RadioGroup>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:visibility="gone">
 
         <Button
             android:id="@+id/Btn_login"

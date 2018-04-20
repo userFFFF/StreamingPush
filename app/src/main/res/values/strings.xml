@@ -7,8 +7,10 @@
     <string name="txt_Fps">帧率：</string>
     <string name="switch_camera">切换摄像头</string>
     <string name="txt_NickName">用户名：</string>
+    <string name="txt_psw">密码：</string>
     <string name="btn_login">登录</string>
     <string name="btn_logout">退出</string>
+    <string name="signin_failed">登录失败！</string>
     <string name="txt_QuitLive">退出直播</string>
     <string name="txt_acceptlive">接受直播？</string>
     <string name="txt_accept">确定</string>

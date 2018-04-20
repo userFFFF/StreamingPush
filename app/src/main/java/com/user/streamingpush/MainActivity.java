@@ -9,6 +9,8 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
+import android.os.Handler;
+import android.os.Message;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -31,7 +33,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     public static final String TAG = "MainActivity";
     private Button mLoginBtn;
     private Button mLogoutBtn;
-    private EditText mEditText;
+    private EditText mUserEt;
+    private EditText mPswEt;
     private String mRtmpUrl;
     private String mLoginNickName;
 
@@ -41,7 +44,12 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     private SharedPreferences mSharedPre;
     private SharedPreferences.Editor mEditor;
 
+    private final static String IP = "139.224.128.15";//"192.168.199.68";//
+    private final static String PORT = "8085";
+    private final static int MSG_SIGNIN_RESULT = 0;
+    private CloudMedia mCloudMedia;
     private PushNode mPushNode;
+    private static boolean mIsSignin = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +62,14 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         filter.addAction("android.net.wifi.STATE_CHANGE");
         registerReceiver(mNetworkConnectChangedReceiver, filter);
 
+        final View loginLayout = findViewById(R.id.login);
+        final View loginedLayout = findViewById(R.id.logined);
+
         // Example of a call to a native method
-        mEditText = findViewById(R.id.EditTxt_URL);
+        mUserEt = findViewById(R.id.EditTxt_name);
+        mUserEt.setText("A352686");
+        mPswEt = findViewById(R.id.EditTxt_psw);
+        mPswEt.setText("1234567890");
         RadioGroup mRadioGroup_Resolution = findViewById(R.id.RadioGroup_Solution);
         RadioGroup mRadioGroup_FPS = findViewById(R.id.RadioGroup_FPS);
         mRadioGroup_Resolution.setOnCheckedChangeListener(this);
@@ -65,16 +79,28 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         onResolutionChecked();
         onFPSSetChecked();
 
-        mLoginBtn = findViewById(R.id.Btn_login);
+        mLoginBtn = findViewById(R.id.signinbtn);
         mLoginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mLoginNickName = mEditText.getText().toString();
+                if (!mIsSignin) {
+                    loginLayout.setVisibility(View.GONE);
+                    loginedLayout.setVisibility(View.VISIBLE);
+                    mLoginBtn.setBackgroundResource(R.drawable.signoutbtnbg);
+                    mLoginBtn.setText(R.string.signout_btn);
+                } else {
+                    loginLayout.setVisibility(View.VISIBLE);
+                    loginedLayout.setVisibility(View.GONE);
+                    mLoginBtn.setBackgroundResource(R.drawable.signinbtnbg);
+                    mLoginBtn.setText(R.string.signin_btn);
+                }
+                mIsSignin = !mIsSignin;
+                mLoginNickName = mUserEt.getText().toString();
                 if (mLoginNickName == null || mLoginNickName.length() == 0) {
                     mLoginNickName = "USER0";
                 }
-                if (mOnline == false) {
-                    connectCloudMedia();
+                if (!mOnline) {
+                    signin();
                 }
             }
         });
@@ -94,9 +120,39 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         });
     }
 
+    Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case MSG_SIGNIN_RESULT:
+                    if ((boolean)msg.obj) {
+                        connectCloudMedia();
+                    }else {
+                        Toast.makeText(MainActivity.this, R.string.signin_failed, Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+            }
+        }
+    };
+
+    private void signin() {
+        new Thread() {
+            @Override
+            public void run() {
+                if (mCloudMedia == null) {
+                    mCloudMedia = CloudMedia.get();
+                }
+                boolean loginsuccess = mCloudMedia.login(IP, PORT, mLoginNickName, mPswEt.getText().toString());
+                Log.d(TAG, "get loginresult:"+loginsuccess);
+                mHandler.sendMessage(mHandler.obtainMessage(MSG_SIGNIN_RESULT, loginsuccess));
+            }
+        }.start();
+    }
+
     private void connectCloudMedia() {
         if(mPushNode == null) {
-            mPushNode = CloudMedia.declarePushNode(getApplicationContext(), mLoginNickName, "default");
+            mPushNode = mCloudMedia.declarePushNode(getApplicationContext(), mLoginNickName, "default");
         }
         mPushNode.setOnStartPushMediaActor(new PushNode.OnStartPushMedia() {
             @Override
@@ -150,7 +206,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 return true;
             }
         });
-        mPushNode.connect("", "", "g123", "gn", "v123", "vn", new CloudMedia.RPCResultListener() {
+        mPushNode.connect(mCloudMedia.getUser(mLoginNickName), new CloudMedia.RPCResultListener() {
             @Override
             public void onSuccess(String s) {
                 mOnline = true;

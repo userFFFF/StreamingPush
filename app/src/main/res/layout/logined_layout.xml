@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="300dp"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    >
+    <EditText
+        android:id="@+id/name"
+        style="@style/CustomEdit"
+        android:textColor="@color/colorhint"
+        android:text="Alina"
+        android:editable="false"/>
+
+    <EditText
+        android:id="@+id/psw"
+        style="@style/CustomEdit"
+        android:textColor="@color/colorhint"
+        android:text="**********"
+        android:editable="false"/>
+
+    <TextView
+        android:id="@+id/solution"
+        android:layout_width="@dimen/login_edit_width"
+        android:layout_height="@dimen/login_edit_height"
+        android:text="分辨率：320P"
+        android:textSize="@dimen/default_text_size"
+        android:textColor="@color/colorhint"
+        android:layout_marginTop="20dp"
+        android:layout_gravity="center_horizontal"
+        android:paddingLeft="12dp"/>
+
+    <TextView
+        android:id="@+id/fps"
+        android:layout_width="@dimen/login_edit_width"
+        android:layout_height="@dimen/login_edit_height"
+        android:text="帧率：15fps"
+        android:textSize="@dimen/default_text_size"
+        android:textColor="@color/colorhint"
+        android:layout_gravity="center_horizontal"
+        android:paddingLeft="12dp"/>
+
+</LinearLayout>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="login_edit_height">56dp</dimen>
+    <dimen name="login_edit_width">300dp</dimen>
+    <dimen name="default_text_size">20sp</dimen>
+</resources>

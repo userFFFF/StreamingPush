@@ -3,4 +3,9 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="colortitlebar">#409eff</color>
+    <color name="colormainback">#f2f2f2</color>
+    <color name="colorhint">#646464</color>
+    <color name="color_radio_text">#919191</color>
+    <color name="color_radio_option">#585858</color>
 </resources>
