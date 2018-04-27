@@ -96,12 +96,12 @@
             <RadioButton
                 android:id="@+id/Radio_15"
                 style="@style/CustomRadioButton"
-                android:checked="true"
                 android:text="15 fps"/>
 
             <RadioButton
                 android:id="@+id/Radio_20"
                 style="@style/CustomRadioButton"
+                android:checked="true"
                 android:text="20 fps" />
 
             <RadioButton

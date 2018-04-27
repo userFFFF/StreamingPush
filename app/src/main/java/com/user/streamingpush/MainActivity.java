@@ -20,6 +20,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.cmteam.cloudmedia.PushNode;
@@ -31,8 +32,9 @@ import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity implements RadioGroup.OnCheckedChangeListener {
     public static final String TAG = "MainActivity";
+    private View mLoginLayout;
+    private View mLoginedLayout;
     private Button mLoginBtn;
-    private Button mLogoutBtn;
     private EditText mUserEt;
     private EditText mPswEt;
     private String mRtmpUrl;
@@ -62,12 +64,12 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         filter.addAction("android.net.wifi.STATE_CHANGE");
         registerReceiver(mNetworkConnectChangedReceiver, filter);
 
-        final View loginLayout = findViewById(R.id.login);
-        final View loginedLayout = findViewById(R.id.logined);
+        mLoginLayout = findViewById(R.id.login);
+        mLoginedLayout = findViewById(R.id.logined);
 
         // Example of a call to a native method
         mUserEt = findViewById(R.id.EditTxt_name);
-        mUserEt.setText("A352686");
+        mUserEt.setText("A113777");//A352686
         mPswEt = findViewById(R.id.EditTxt_psw);
         mPswEt.setText("1234567890");
         RadioGroup mRadioGroup_Resolution = findViewById(R.id.RadioGroup_Solution);
@@ -84,38 +86,21 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             @Override
             public void onClick(View v) {
                 if (!mIsSignin) {
-                    loginLayout.setVisibility(View.GONE);
-                    loginedLayout.setVisibility(View.VISIBLE);
-                    mLoginBtn.setBackgroundResource(R.drawable.signoutbtnbg);
-                    mLoginBtn.setText(R.string.signout_btn);
+                    mLoginNickName = mUserEt.getText().toString();
+                    if (mLoginNickName == null || mLoginNickName.length() == 0) {
+                        mLoginNickName = "USER0";
+                    }
+                    if (!mOnline) {
+                        signin();
+                    }
                 } else {
-                    loginLayout.setVisibility(View.VISIBLE);
-                    loginedLayout.setVisibility(View.GONE);
+                    signout();
+                    mLoginLayout.setVisibility(View.VISIBLE);
+                    mLoginedLayout.setVisibility(View.GONE);
                     mLoginBtn.setBackgroundResource(R.drawable.signinbtnbg);
                     mLoginBtn.setText(R.string.signin_btn);
                 }
                 mIsSignin = !mIsSignin;
-                mLoginNickName = mUserEt.getText().toString();
-                if (mLoginNickName == null || mLoginNickName.length() == 0) {
-                    mLoginNickName = "USER0";
-                }
-                if (!mOnline) {
-                    signin();
-                }
-            }
-        });
-        mLogoutBtn = findViewById(R.id.Btn_logout);
-        mLogoutBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mPushNode != null) {
-                    mPushNode.disconnect();
-                    mPushNode = null;
-
-                    mOnline = false;
-                    mLoginBtn.setEnabled(true);
-                    mLogoutBtn.setEnabled(false);
-                }
             }
         });
     }
@@ -148,6 +133,22 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 mHandler.sendMessage(mHandler.obtainMessage(MSG_SIGNIN_RESULT, loginsuccess));
             }
         }.start();
+    }
+
+    private void signout() {
+        if (mPushNode != null) {
+            mPushNode.disconnect();
+            mPushNode = null;
+        }
+        if (mCloudMedia != null && mOnline) {
+            new Thread() {
+                @Override
+                public void run() {
+                    mCloudMedia.logout(mLoginNickName);
+                    mOnline = false;
+                }
+            }.start();
+        }
     }
 
     private void connectCloudMedia() {
@@ -210,9 +211,26 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             @Override
             public void onSuccess(String s) {
                 mOnline = true;
-                mLoginBtn.setEnabled(false);
-                mLogoutBtn.setEnabled(true);
                 Log.d(TAG, "connect onSuccess");
+
+                EditText nameET = findViewById(R.id.name);
+                EditText pswET = findViewById(R.id.psw);
+                nameET.setText(mLoginNickName);
+                pswET.setText(mPswEt.getText());
+
+                TextView solutionTX = findViewById(R.id.solution);
+                TextView fpsTX = findViewById(R.id.fps);
+
+                int resolution = mSharedPre.getInt(Config.RESOLUTION, Config.Resolution_480P);
+                int fps = mSharedPre.getInt(Config.FPS, Config.PFS_20);
+                solutionTX.setText(getResources().getText(R.string.txt_Reslt)+String.valueOf(resolution));
+                fpsTX.setText(getResources().getText(R.string.txt_Fps)+String.valueOf(fps));
+
+                mLoginLayout.setVisibility(View.GONE);
+                mLoginedLayout.setVisibility(View.VISIBLE);
+                mLoginBtn.setBackgroundResource(R.drawable.signoutbtnbg);
+                mLoginBtn.setText(R.string.signout_btn);
+
                 mPushNode.setMessageListener(new CloudMedia.OnMessageListener() {
                     @Override
                     public void onMessage(String s, String s1, String s2) {
@@ -329,13 +347,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mPushNode != null) {
-            mPushNode.disconnect();
-
-            mOnline = false;
-            mLoginBtn.setEnabled(true);
-            mLogoutBtn.setEnabled(false);
-        }
+        signout();
         unregisterReceiver(mNetworkConnectChangedReceiver);
     }
 
