@@ -8,5 +8,5 @@
     <string name="psw_hint">密码</string>
     <string name="user_warning">用户名不能为空</string>
     <string name="psw_warning">密码不能为空</string>
-    <string name="signin_failed">登录失败</string>
+    <string name="signin_failed">登录失败：用户名或者密码不正确</string>
 </resources>

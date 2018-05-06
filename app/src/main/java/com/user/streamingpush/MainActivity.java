@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Animatable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
@@ -15,9 +16,13 @@ import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -52,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     private CloudMedia mCloudMedia;
     private PushNode mPushNode;
     private static boolean mIsSignin = false;
+    private CustomDialog mWaitDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
 
         // Example of a call to a native method
         mUserEt = findViewById(R.id.EditTxt_name);
-        mUserEt.setText("A113777");//A352686
+        mUserEt.setText("A352686");//A113777
         mPswEt = findViewById(R.id.EditTxt_psw);
         mPswEt.setText("1234567890");
         RadioGroup mRadioGroup_Resolution = findViewById(R.id.RadioGroup_Solution);
@@ -86,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             @Override
             public void onClick(View v) {
                 if (!mIsSignin) {
+                    showWaitingDialog();
                     mLoginNickName = mUserEt.getText().toString();
                     if (mLoginNickName == null || mLoginNickName.length() == 0) {
                         mLoginNickName = "USER0";
@@ -114,6 +121,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                     if ((boolean)msg.obj) {
                         connectCloudMedia();
                     }else {
+                        if (mWaitDialog.isShowing())
+                            dismissWaitDialog();
                         Toast.makeText(MainActivity.this, R.string.signin_failed, Toast.LENGTH_SHORT).show();
                     }
                     break;
@@ -148,6 +157,38 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                     mOnline = false;
                 }
             }.start();
+        }
+    }
+
+    private void showWaitingDialog() {
+        if (mWaitDialog != null) {
+            if (mWaitDialog.isShowing())
+                return;
+            mWaitDialog.show();
+            return;
+        }
+        LayoutInflater inflater = (LayoutInflater)this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View waitView = inflater.inflate(R.layout.waiting_dialog, null);
+        mWaitDialog = new CustomDialog.Builder(this)
+                .create(waitView, R.style.CustomDialog, Gravity.CENTER);
+        ImageView images = waitView.findViewById(R.id.images);
+        ((Animatable)images.getDrawable()).start();
+        mWaitDialog.setDialogOnKeyDownListner(new CustomDialog.DialogOnKeyDownListner() {
+            @Override
+            public void onKeyDownListener(int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    Log.d(TAG, "Dialog back key down");
+                    dismissWaitDialog();
+                }
+            }
+        });
+        mWaitDialog.show();
+    }
+
+    private void dismissWaitDialog() {
+        if (mWaitDialog != null) {
+            mWaitDialog.dismiss();
+            mWaitDialog = null;
         }
     }
 
@@ -212,6 +253,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             public void onSuccess(String s) {
                 mOnline = true;
                 Log.d(TAG, "connect onSuccess");
+                if (mWaitDialog.isShowing())
+                    dismissWaitDialog();
 
                 EditText nameET = findViewById(R.id.name);
                 EditText pswET = findViewById(R.id.psw);
@@ -243,6 +286,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             @Override
             public void onFailure(String s) {
                 Log.d(TAG, "connect onFailure");
+                if (mWaitDialog.isShowing())
+                    dismissWaitDialog();
                 Toast.makeText(getApplicationContext(), "Login failure, please checked the network.", Toast.LENGTH_SHORT).show();
             }
         });

@@ -19,14 +19,20 @@
             android:layout_width="210dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/switch_camera" />
+            android:text="@string/switch_camera"
+            android:background="@drawable/signinbtnbg"
+            android:textSize="@dimen/default_text_size"
+            android:textColor="@android:color/white"/>
 
         <Button
             android:id="@+id/Btn_quitlive"
             android:layout_width="210dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/txt_QuitLive" />
+            android:text="@string/txt_QuitLive"
+            android:background="@drawable/signinbtnbg"
+            android:textSize="@dimen/default_text_size"
+            android:textColor="@android:color/white"/>
 
     </LinearLayout>
 
