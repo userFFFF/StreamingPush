@@ -3,6 +3,7 @@
     <string name="btn_stop">Stop</string>
     <string name="btn_start">开始直播</string>
     <string name="txt_Addr">请输入RTMP服务器地址：</string>
+    <string name="txt_Groupnick">组名称：</string>
     <string name="txt_Reslt">分辨率：</string>
     <string name="txt_Fps">帧率：</string>
     <string name="switch_camera">切换摄像头</string>

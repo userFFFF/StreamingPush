@@ -261,6 +261,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 nameET.setText(mLoginNickName);
                 pswET.setText(mPswEt.getText());
 
+                TextView groupNickTX = findViewById(R.id.group_nick);
+                groupNickTX.setText(getResources().getText(R.string.txt_Groupnick)+mPushNode.getMyNode().getGroupNick());
                 TextView solutionTX = findViewById(R.id.solution);
                 TextView fpsTX = findViewById(R.id.fps);
 
