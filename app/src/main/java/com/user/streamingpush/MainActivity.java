@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     private SharedPreferences mSharedPre;
     private SharedPreferences.Editor mEditor;
 
-    private final static String IP = "139.224.128.15";//"192.168.199.68";//
+    private final static String IP = "47.100.125.222";
     private final static String PORT = "8085";
     private final static int MSG_SIGNIN_RESULT = 0;
     private CloudMedia mCloudMedia;
