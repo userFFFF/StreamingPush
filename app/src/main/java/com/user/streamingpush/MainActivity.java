@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
 
     private final static String IP = "47.100.125.222";
     private final static String PORT = "8085";
+    private final static String mDomainName = "www.yangxudong.com";
     private final static int MSG_SIGNIN_RESULT = 0;
     private CloudMedia mCloudMedia;
     private PushNode mPushNode;
@@ -75,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
 
         // Example of a call to a native method
         mUserEt = findViewById(R.id.EditTxt_name);
-        mUserEt.setText("A352686");//A113777
+        mUserEt.setText("A105896");//A113777
         mPswEt = findViewById(R.id.EditTxt_psw);
         mPswEt.setText("1234567890");
         RadioGroup mRadioGroup_Resolution = findViewById(R.id.RadioGroup_Solution);
@@ -118,9 +119,9 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             super.handleMessage(msg);
             switch (msg.what) {
                 case MSG_SIGNIN_RESULT:
-                    if ((boolean)msg.obj) {
+                    if ((boolean) msg.obj) {
                         connectCloudMedia();
-                    }else {
+                    } else {
                         if (mWaitDialog.isShowing())
                             dismissWaitDialog();
                         Toast.makeText(MainActivity.this, R.string.signin_failed, Toast.LENGTH_SHORT).show();
@@ -137,8 +138,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 if (mCloudMedia == null) {
                     mCloudMedia = CloudMedia.get();
                 }
-                boolean loginsuccess = mCloudMedia.login(IP, PORT, mLoginNickName, mPswEt.getText().toString());
-                Log.d(TAG, "get loginresult:"+loginsuccess);
+                boolean loginsuccess = mCloudMedia.login(mDomainName, mLoginNickName, mPswEt.getText().toString());
+                Log.d(TAG, "get loginresult:" + loginsuccess);
                 mHandler.sendMessage(mHandler.obtainMessage(MSG_SIGNIN_RESULT, loginsuccess));
             }
         }.start();
@@ -167,12 +168,12 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             mWaitDialog.show();
             return;
         }
-        LayoutInflater inflater = (LayoutInflater)this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View waitView = inflater.inflate(R.layout.waiting_dialog, null);
         mWaitDialog = new CustomDialog.Builder(this)
                 .create(waitView, R.style.CustomDialog, Gravity.CENTER);
         ImageView images = waitView.findViewById(R.id.images);
-        ((Animatable)images.getDrawable()).start();
+        ((Animatable) images.getDrawable()).start();
         mWaitDialog.setDialogOnKeyDownListner(new CustomDialog.DialogOnKeyDownListner() {
             @Override
             public void onKeyDownListener(int keyCode, KeyEvent event) {
@@ -193,8 +194,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     }
 
     private void connectCloudMedia() {
-        if(mPushNode == null) {
-            mPushNode = mCloudMedia.declarePushNode(getApplicationContext(), mLoginNickName, "default");
+        if (mPushNode == null) {
+            mPushNode = mCloudMedia.declarePushNode(getApplicationContext(), "Camera-1", mLoginNickName);
         }
         mPushNode.setOnStartPushMediaActor(new PushNode.OnStartPushMedia() {
             @Override
@@ -262,14 +263,14 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 pswET.setText(mPswEt.getText());
 
                 TextView groupNickTX = findViewById(R.id.group_nick);
-                groupNickTX.setText(getResources().getText(R.string.txt_Groupnick)+mPushNode.getMyNode().getGroupNick());
+                groupNickTX.setText(getResources().getText(R.string.txt_Groupnick) + mPushNode.getMyNode().getGroupNick());
                 TextView solutionTX = findViewById(R.id.solution);
                 TextView fpsTX = findViewById(R.id.fps);
 
                 int resolution = mSharedPre.getInt(Config.RESOLUTION, Config.Resolution_480P);
                 int fps = mSharedPre.getInt(Config.FPS, Config.PFS_20);
-                solutionTX.setText(getResources().getText(R.string.txt_Reslt)+String.valueOf(resolution));
-                fpsTX.setText(getResources().getText(R.string.txt_Fps)+String.valueOf(fps));
+                solutionTX.setText(getResources().getText(R.string.txt_Reslt) + String.valueOf(resolution));
+                fpsTX.setText(getResources().getText(R.string.txt_Fps) + String.valueOf(fps));
 
                 mLoginLayout.setVisibility(View.GONE);
                 mLoginedLayout.setVisibility(View.VISIBLE);
@@ -279,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 mPushNode.setMessageListener(new CloudMedia.OnMessageListener() {
                     @Override
                     public void onMessage(String s, String s1, String s2) {
-                        Log.d(TAG, "onMessage:s = "+s+", s1 = "+s1+", s2 ="+s2);
+                        Log.d(TAG, "onMessage:s = " + s + ", s1 = " + s1 + ", s2 =" + s2);
                         mPushNode.sendMessage(s, s1, "pusher: receied");
                     }
                 });

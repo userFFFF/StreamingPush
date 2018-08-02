@@ -159,6 +159,7 @@ public class AudioStream {
                 mBuffers = mMediaCodec.getOutputBuffers();
             }
             ByteBuffer mBuffer = ByteBuffer.allocate(10240);
+
             do {
                 index = mMediaCodec.dequeueOutputBuffer(mBufferInfo, 10000);
                 if (index >= 0) {
@@ -178,7 +179,8 @@ public class AudioStream {
                     mBuffer.position(ADTS_HEADER_SIZE + mBufferInfo.size);
                     adts_write_frame_header(mBuffer.array(), mBufferInfo.size + ADTS_HEADER_SIZE, 0, MediaCodecInfo.CodecProfileLevel.AACObjectLC, 2);
                     mBuffer.flip();
-                    long timestamp = System.currentTimeMillis();
+                    long timestamp = System.currentTimeMillis() - mRtmpLive.timestamp_base;
+
 //                    Log.d(TAG, "mBufferInfo.size: " + mBufferInfo.size);
                     int ret = mRtmpLive.StreamPusher(mBuffer.array(), mBufferInfo.size + ADTS_HEADER_SIZE,
                             timestamp, Config.MEDIA_TYPE_AUDIO);

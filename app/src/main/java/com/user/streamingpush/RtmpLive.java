@@ -9,6 +9,7 @@ import android.util.Log;
 public class RtmpLive {
     public static final String TAG = "StreamingPush-RtmpLive";
     private long mPusherObj;
+    public long timestamp_base = System.currentTimeMillis();
 
     public interface onStreamingCallback {
         void onCallbak(int code);
