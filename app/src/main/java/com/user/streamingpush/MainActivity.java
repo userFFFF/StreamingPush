@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     private EditText mPswEt;
     private String mRtmpUrl;
     private String mLoginNickName;
+    private String mLoginNodeId;
 
     private boolean mOnline = false;
     private boolean mIsPushing = false;
@@ -98,9 +99,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                     if (mLoginNickName == null || mLoginNickName.length() == 0) {
                         mLoginNickName = "USER0";
                     }
-                    if (!mOnline) {
-                        signin();
-                    }
+                    signin();
                 } else {
                     signout();
                     mLoginLayout.setVisibility(View.VISIBLE);
@@ -108,7 +107,6 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                     mLoginBtn.setBackgroundResource(R.drawable.signinbtnbg);
                     mLoginBtn.setText(R.string.signin_btn);
                 }
-                mIsSignin = !mIsSignin;
             }
         });
     }
@@ -119,7 +117,9 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             super.handleMessage(msg);
             switch (msg.what) {
                 case MSG_SIGNIN_RESULT:
-                    if ((boolean) msg.obj) {
+                    mLoginNodeId = (String)msg.obj;
+                    if (mLoginNodeId != null) {
+                        mIsSignin = true;
                         connectCloudMedia();
                     } else {
                         if (mWaitDialog.isShowing())
@@ -138,24 +138,25 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 if (mCloudMedia == null) {
                     mCloudMedia = CloudMedia.get();
                 }
-                boolean loginsuccess = mCloudMedia.login(mDomainName, mLoginNickName, mPswEt.getText().toString());
-                Log.d(TAG, "get loginresult:" + loginsuccess);
-                mHandler.sendMessage(mHandler.obtainMessage(MSG_SIGNIN_RESULT, loginsuccess));
+                String loginNodeId = mCloudMedia.login(mDomainName, mLoginNickName, mPswEt.getText().toString());
+                Log.d(TAG, "get loginresult:" + loginNodeId);
+                mHandler.sendMessage(mHandler.obtainMessage(MSG_SIGNIN_RESULT, loginNodeId));
             }
         }.start();
     }
 
     private void signout() {
-        if (mPushNode != null) {
+        if (mPushNode != null && mOnline) {
             mPushNode.disconnect();
+            mOnline = false;
             mPushNode = null;
         }
-        if (mCloudMedia != null && mOnline) {
+        if (mCloudMedia != null && mIsSignin) {
             new Thread() {
                 @Override
                 public void run() {
-                    mCloudMedia.logout(mLoginNickName);
-                    mOnline = false;
+                    mCloudMedia.logout(mLoginNickName, mLoginNodeId);
+                    mIsSignin = false;
                 }
             }.start();
         }
@@ -249,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 return true;
             }
         });
-        mPushNode.connect(mCloudMedia.getUser(mLoginNickName), new CloudMedia.RPCResultListener() {
+        mPushNode.connect(mCloudMedia.getUser(mLoginNodeId), new CloudMedia.RPCResultListener() {
             @Override
             public void onSuccess(String s) {
                 mOnline = true;
@@ -291,6 +292,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 Log.d(TAG, "connect onFailure");
                 if (mWaitDialog.isShowing())
                     dismissWaitDialog();
+                signout();
                 Toast.makeText(getApplicationContext(), "Login failure, please checked the network.", Toast.LENGTH_SHORT).show();
             }
         });
