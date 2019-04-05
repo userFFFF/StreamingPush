@@ -9,11 +9,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        externalNativeBuild {
-            cmake {
-                cppFlags "-frtti -fexceptions"
-            }
-        }
+
     }
     buildTypes {
         release {
@@ -21,18 +17,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         debug {
-            ndk {
-                moduleName "rtmplive"
-                ldLibs "log", "z", "m"
-                abiFilters "armeabi", "armeabi-v7a", "x86"
-            }
         }
 
-    }
-    externalNativeBuild {
-        cmake {
-            path "CMakeLists.txt"
-        }
     }
 }
 

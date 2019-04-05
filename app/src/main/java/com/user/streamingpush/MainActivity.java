@@ -77,9 +77,9 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
 
         // Example of a call to a native method
         mUserEt = findViewById(R.id.EditTxt_name);
-        mUserEt.setText("A105896");//A113777
+        mUserEt.setText("A811880");//A113777
         mPswEt = findViewById(R.id.EditTxt_psw);
-        mPswEt.setText("1234567890");
+        mPswEt.setText("123456");
         RadioGroup mRadioGroup_Resolution = findViewById(R.id.RadioGroup_Solution);
         RadioGroup mRadioGroup_FPS = findViewById(R.id.RadioGroup_FPS);
         mRadioGroup_Resolution.setOnCheckedChangeListener(this);
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 if (mCloudMedia == null) {
                     mCloudMedia = CloudMedia.get();
                 }
-                String loginNodeId = mCloudMedia.login(mDomainName, mLoginNickName, mPswEt.getText().toString());
+                String loginNodeId = mCloudMedia.login(IP, mLoginNickName, mPswEt.getText().toString());
                 Log.d(TAG, "get loginresult:" + loginNodeId);
                 mHandler.sendMessage(mHandler.obtainMessage(MSG_SIGNIN_RESULT, loginNodeId));
             }
